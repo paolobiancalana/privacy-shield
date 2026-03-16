@@ -1,0 +1,38 @@
+{
+  "name": "@privacyshield/sdk",
+  "version": "1.0.0",
+  "description": "Privacy Shield PII Detection SDK for Node.js and browsers",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "privacy",
+    "pii",
+    "ner",
+    "gdpr",
+    "tokenization",
+    "italian"
+  ],
+  "author": "Privacy Shield",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
