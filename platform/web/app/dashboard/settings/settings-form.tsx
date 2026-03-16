@@ -92,8 +92,8 @@ export function SettingsForm({ org, isOwner }: SettingsFormProps) {
   if (!org) {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-xl font-semibold">Settings</h1>
-        <p className="text-sm text-muted-foreground">No organization found.</p>
+        <h1 className="text-xl font-semibold">Impostazioni</h1>
+        <p className="text-sm text-muted-foreground">Nessuna organizzazione trovata.</p>
       </div>
     );
   }
@@ -101,9 +101,9 @@ export function SettingsForm({ org, isOwner }: SettingsFormProps) {
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div>
-        <h1 className="text-xl font-semibold">Settings</h1>
+        <h1 className="text-xl font-semibold">Impostazioni</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage your organization settings.
+          Gestisci le impostazioni della tua organizzazione.
         </p>
       </div>
 
@@ -112,15 +112,15 @@ export function SettingsForm({ org, isOwner }: SettingsFormProps) {
       {/* ------------------------------------------------------------------ */}
       <Card>
         <CardHeader>
-          <CardTitle>General</CardTitle>
+          <CardTitle>Generale</CardTitle>
           <CardDescription>
-            Update your organization name and slug.
+            Aggiorna il nome e lo slug della tua organizzazione.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSave} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="org-name">Organization name</Label>
+              <Label htmlFor="org-name">Nome organizzazione</Label>
               <Input
                 id="org-name"
                 value={name}
@@ -161,14 +161,14 @@ export function SettingsForm({ org, isOwner }: SettingsFormProps) {
               <div className="flex justify-end">
                 <Button type="submit" size="sm" disabled={isSaving}>
                   <SaveIcon className="size-4" />
-                  {isSaving ? "Saving…" : "Save changes"}
+                  {isSaving ? "Salvataggio…" : "Salva modifiche"}
                 </Button>
               </div>
             )}
 
             {!isOwner && (
               <p className="text-xs text-muted-foreground">
-                Only organization owners can edit these settings.
+                Solo i proprietari possono modificare queste impostazioni.
               </p>
             )}
           </form>
@@ -181,19 +181,19 @@ export function SettingsForm({ org, isOwner }: SettingsFormProps) {
       {isOwner && (
         <Card className="border-destructive/40">
           <CardHeader>
-            <CardTitle className="text-destructive">Danger zone</CardTitle>
+            <CardTitle className="text-destructive">Zona pericolosa</CardTitle>
             <CardDescription>
-              Irreversible actions. Proceed with caution.
+              Azioni irreversibili. Procedi con cautela.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Separator className="mb-4" />
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium">Delete organization</p>
+                <p className="text-sm font-medium">Elimina organizzazione</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Permanently delete your organization and all associated data.
-                  This action cannot be undone.
+                  Elimina definitivamente la tua organizzazione e tutti i dati associati.
+                  Questa azione non può essere annullata.
                 </p>
               </div>
 
@@ -208,28 +208,28 @@ export function SettingsForm({ org, isOwner }: SettingsFormProps) {
                   }
                 >
                   <Trash2Icon className="size-4" />
-                  Delete org
+                  Elimina org
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle className="flex items-center gap-2">
                       <AlertTriangleIcon className="size-4 text-destructive" />
-                      Delete &ldquo;{org.name}&rdquo;?
+                      Eliminare &ldquo;{org.name}&rdquo;?
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete the organization, all API
-                      keys, usage data, and member records. This action cannot
-                      be undone.
+                      Questa operazione eliminerà definitivamente l&apos;organizzazione,
+                      tutte le chiavi API, i dati di utilizzo e i record dei membri.
+                      Questa azione non può essere annullata.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Annulla</AlertDialogCancel>
                     <AlertDialogAction
                       variant="destructive"
                       onClick={handleDelete}
                       disabled={isDeleting}
                     >
-                      {isDeleting ? "Deleting…" : "Yes, delete organization"}
+                      {isDeleting ? "Eliminazione…" : "Sì, elimina organizzazione"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

@@ -112,7 +112,7 @@ const endpoints: Endpoint[] = [
     method: "POST",
     path: "/api/v1/tokenize",
     description:
-      "Scan text for PII entities and replace them with reversible tokens. Supports Italian-specific entity types: CF, IVA, IBAN, and more.",
+      "Analizza il testo alla ricerca di entità PII e le sostituisce con token reversibili. Supporta tipi di entità specifici per l'Italia: CF, IVA, IBAN e altro.",
     badge: "Core",
     requestBody: `{
   "text": "string",          // required — document text (max 50 000 chars)
@@ -137,7 +137,7 @@ const endpoints: Endpoint[] = [
     method: "POST",
     path: "/api/v1/rehydrate",
     description:
-      "Reverse tokenization: swap tokens back to their original PII values. Requires the same API key used during tokenization.",
+      "Detokenizzazione inversa: ripristina i token ai valori PII originali. Richiede la stessa chiave API usata durante la tokenizzazione.",
     badge: "Core",
     requestBody: `{
   "text": "string" // required — text containing [TYPE_token] placeholders
@@ -152,7 +152,7 @@ const endpoints: Endpoint[] = [
     method: "POST",
     path: "/api/v1/flush",
     description:
-      "Permanently delete all stored token mappings for a given scope. Use to honour GDPR erasure requests or rotate token namespaces.",
+      "Elimina definitivamente tutte le mappature di token per un dato scope. Usalo per soddisfare le richieste di cancellazione GDPR o per ruotare i namespace dei token.",
     badge: "Privacy",
     requestBody: `{
   "scope": "all | session",  // required
@@ -211,14 +211,14 @@ export default function DocsPage() {
         <div className="mb-12">
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             <BookOpen className="h-4 w-4" aria-hidden="true" />
-            <span>API Reference</span>
+            <span>Riferimento API</span>
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-foreground">
-            Privacy Shield API Docs
+            Documentazione API Privacy Shield
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Everything you need to integrate PII detection and tokenization into
-            your application.
+            Tutto il necessario per integrare il rilevamento e la tokenizzazione
+            dei dati personali nella tua applicazione.
           </p>
 
           {/* Meta info */}
@@ -257,17 +257,17 @@ export default function DocsPage() {
             id="quickstart-heading"
             className="mb-2 text-2xl font-bold text-foreground"
           >
-            Quick start
+            Guida rapida
           </h2>
           <p className="mb-6 text-muted-foreground">
-            Get your API key from the{" "}
+            Ottieni la tua chiave API dalla{" "}
             <a
               href="/dashboard"
               className="underline underline-offset-4 transition-colors hover:text-foreground"
             >
               dashboard
             </a>{" "}
-            and make your first request in under two minutes.
+            ed esegui la prima richiesta in meno di due minuti.
           </p>
 
           <Tabs defaultValue="curl">
@@ -299,34 +299,34 @@ export default function DocsPage() {
             id="auth-heading"
             className="mb-2 text-2xl font-bold text-foreground"
           >
-            Authentication
+            Autenticazione
           </h2>
           <p className="mb-4 text-muted-foreground">
-            Every request must include your API key in the{" "}
+            Ogni richiesta deve includere la tua chiave API nell&apos;header{" "}
             <code
               className="rounded px-1.5 py-0.5 font-mono text-sm"
               style={{ background: "#1a1a2e", color: "#93c5fd" }}
             >
               X-API-Key
-            </code>{" "}
-            header. Keys are prefixed with{" "}
+            </code>
+            . Le chiavi sono precedute dal prefisso{" "}
             <code
               className="rounded px-1.5 py-0.5 font-mono text-sm"
               style={{ background: "#1a1a2e", color: "#86efac" }}
             >
               ps_live_
             </code>{" "}
-            for production and{" "}
+            per la produzione e{" "}
             <code
               className="rounded px-1.5 py-0.5 font-mono text-sm"
               style={{ background: "#1a1a2e", color: "#fcd34d" }}
             >
               ps_test_
             </code>{" "}
-            for sandbox.
+            per la sandbox.
           </p>
           <CodeBlock
-            code={`# All requests must include this header
+            code={`# Tutte le richieste devono includere questo header
 X-API-Key: ps_live_YOUR_API_KEY`}
           />
         </section>
@@ -341,7 +341,7 @@ X-API-Key: ps_live_YOUR_API_KEY`}
             id="endpoints-heading"
             className="mb-8 text-2xl font-bold text-foreground"
           >
-            Endpoints
+            Endpoint
           </h2>
 
           <div className="flex flex-col gap-10">
@@ -370,13 +370,13 @@ X-API-Key: ps_live_YOUR_API_KEY`}
                   <CardContent className="flex flex-col gap-5">
                     <div>
                       <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        Request body
+                        Corpo della richiesta
                       </p>
                       <CodeBlock code={ep.requestBody} />
                     </div>
                     <div>
                       <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        Response
+                        Risposta
                       </p>
                       <CodeBlock code={ep.responseBody} />
                     </div>
@@ -397,13 +397,13 @@ X-API-Key: ps_live_YOUR_API_KEY`}
             id="errors-heading"
             className="mb-6 text-2xl font-bold text-foreground"
           >
-            Error codes
+            Codici di errore
           </h2>
 
           <div className="overflow-x-auto rounded-xl border border-border">
             <table
               className="w-full text-left text-sm"
-              aria-label="API error codes"
+              aria-label="Codici di errore API"
             >
               <thead>
                 <tr
@@ -411,23 +411,23 @@ X-API-Key: ps_live_YOUR_API_KEY`}
                   style={{ background: "#0f0f1a" }}
                 >
                   <th scope="col" className="px-4 py-3 font-medium text-muted-foreground">
-                    HTTP Status
+                    Stato HTTP
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium text-muted-foreground">
-                    Code
+                    Codice
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium text-muted-foreground">
-                    Meaning
+                    Significato
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { status: "400", code: "invalid_request", meaning: "Malformed JSON or missing required field." },
-                  { status: "401", code: "unauthorized", meaning: "Missing or invalid API key." },
-                  { status: "422", code: "text_too_long", meaning: "Input text exceeds 50 000 characters." },
-                  { status: "429", code: "rate_limited", meaning: "Request rate exceeded for your plan." },
-                  { status: "500", code: "internal_error", meaning: "Unexpected server error. Retry with backoff." },
+                  { status: "400", code: "invalid_request", meaning: "JSON non valido o campo obbligatorio mancante." },
+                  { status: "401", code: "unauthorized", meaning: "Chiave API mancante o non valida." },
+                  { status: "422", code: "text_too_long", meaning: "Il testo supera i 50.000 caratteri consentiti." },
+                  { status: "429", code: "rate_limited", meaning: "Frequenza di richieste superata per il tuo piano." },
+                  { status: "500", code: "internal_error", meaning: "Errore interno del server. Riprova con backoff esponenziale." },
                 ].map(({ status, code, meaning }, i) => (
                   <tr
                     key={code}
@@ -476,21 +476,21 @@ X-API-Key: ps_live_YOUR_API_KEY`}
             id="entity-types-heading"
             className="mb-6 text-2xl font-bold text-foreground"
           >
-            Supported PII entity types
+            Tipi di PII supportati
           </h2>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {[
-              { type: "PERSON", example: "Mario Rossi", note: "Full names" },
+              { type: "PERSON", example: "Mario Rossi", note: "Nomi e cognomi" },
               { type: "CF", example: "RSSMRA85M10H501Z", note: "Codice Fiscale" },
               { type: "IVA", example: "IT12345678901", note: "Partita IVA" },
-              { type: "IBAN", example: "IT60X0542811101000000123456", note: "Bank account" },
-              { type: "EMAIL", example: "mario@example.com", note: "Email addresses" },
-              { type: "PHONE", example: "+39 02 1234567", note: "Phone numbers" },
-              { type: "ADDRESS", example: "Via Roma 1, Milano", note: "Street addresses" },
-              { type: "DATE", example: "15/03/1985", note: "Dates of birth" },
-              { type: "ORG", example: "Rossi S.r.l.", note: "Company names" },
-              { type: "OTHER", example: "—", note: "Residual PII" },
+              { type: "IBAN", example: "IT60X0542811101000000123456", note: "Conto bancario" },
+              { type: "EMAIL", example: "mario@example.com", note: "Indirizzi email" },
+              { type: "PHONE", example: "+39 02 1234567", note: "Numeri di telefono" },
+              { type: "ADDRESS", example: "Via Roma 1, Milano", note: "Indirizzi stradali" },
+              { type: "DATE", example: "15/03/1985", note: "Date di nascita" },
+              { type: "ORG", example: "Rossi S.r.l.", note: "Ragioni sociali" },
+              { type: "OTHER", example: "—", note: "PII residuale" },
             ].map(({ type, example, note }) => (
               <div
                 key={type}

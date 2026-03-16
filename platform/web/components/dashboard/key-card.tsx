@@ -103,12 +103,12 @@ export function KeyCard({ apiKey, onRevoke }: KeyCardProps) {
             {apiKey.label && (
               <span className="truncate">{apiKey.label}</span>
             )}
-            <span>Created {formatDate(apiKey.created_at)}</span>
+            <span>Creata il {formatDate(apiKey.created_at)}</span>
             {apiKey.revoked_at && (
-              <span>Revoked {formatDate(apiKey.revoked_at)}</span>
+              <span>Revocata il {formatDate(apiKey.revoked_at)}</span>
             )}
             {apiKey.last_used_at && !isRevoked && (
-              <span>Last used {formatDate(apiKey.last_used_at)}</span>
+              <span>Ultimo utilizzo {formatDate(apiKey.last_used_at)}</span>
             )}
           </div>
         </div>
@@ -123,7 +123,7 @@ export function KeyCard({ apiKey, onRevoke }: KeyCardProps) {
                 variant="ghost"
                 size="icon-sm"
                 className="shrink-0 text-muted-foreground hover:text-destructive"
-                aria-label="Revoke key"
+                aria-label="Revoca chiave"
               />
             }
           >
@@ -131,23 +131,23 @@ export function KeyCard({ apiKey, onRevoke }: KeyCardProps) {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Revoke API key?</AlertDialogTitle>
+              <AlertDialogTitle>Revocare la chiave API?</AlertDialogTitle>
               <AlertDialogDescription>
-                Any requests using{" "}
+                Tutte le richieste che usano{" "}
                 <code className="rounded bg-muted px-1 font-mono text-xs text-foreground">
                   {apiKey.prefix}
                 </code>{" "}
-                will stop working immediately. This action cannot be undone.
+                smetteranno di funzionare immediatamente. Questa azione non può essere annullata.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Annulla</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 onClick={handleRevoke}
                 disabled={loading}
               >
-                {loading ? "Revoking…" : "Revoke key"}
+                {loading ? "Revoca in corso…" : "Revoca chiave"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

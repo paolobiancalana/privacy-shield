@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Loader2, CircleCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ function GitHubIcon() {
 // ---------------------------------------------------------------------------
 
 export default function SignupPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -72,7 +74,7 @@ export default function SignupPage() {
     setErrorMessage(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -86,6 +88,15 @@ export default function SignupPage() {
       return;
     }
 
+    // When mailer_autoconfirm is ON in Supabase, signUp returns a live session
+    // immediately — no email confirmation step. Redirect straight to dashboard.
+    // When autoconfirm is OFF, data.session is null and we show the email prompt.
+    if (data.session) {
+      router.push("/dashboard");
+      return;
+    }
+
+    // No session yet — email confirmation is required.
     setSuccess(true);
     setLoading(false);
   }
@@ -121,18 +132,18 @@ export default function SignupPage() {
               <CircleCheck className="size-6 text-emerald-400" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-white">Check your email</h2>
+              <h2 className="text-lg font-semibold text-white">Controlla la tua email</h2>
               <p className="text-sm text-[#888888]">
-                We sent a confirmation link to{" "}
-                <span className="text-[#e0e0e0]">{email}</span>. Click the link
-                to activate your account.
+                Abbiamo inviato un link di conferma a{" "}
+                <span className="text-[#e0e0e0]">{email}</span>. Clicca il link
+                per attivare il tuo account.
               </p>
             </div>
             <Link
               href="/login"
               className="mt-2 text-sm text-[#3b82f6] hover:underline"
             >
-              Back to sign in
+              Torna al login
             </Link>
           </CardContent>
         </Card>
@@ -148,10 +159,10 @@ export default function SignupPage() {
       <Card className="w-full max-w-md bg-[#1a1a2e]">
         <CardHeader className="space-y-1 pb-2">
           <CardTitle className="text-center text-2xl font-semibold text-white">
-            Create an account
+            Crea il tuo account
           </CardTitle>
           <CardDescription className="text-center text-[#888888]">
-            Start protecting your data with Privacy Shield
+            Inizia a proteggere i tuoi dati con Privacy Shield
           </CardDescription>
         </CardHeader>
 
@@ -164,7 +175,7 @@ export default function SignupPage() {
               className="w-full gap-2"
               disabled={isAnyLoading}
               onClick={() => handleOAuth("google")}
-              aria-label="Continue with Google"
+              aria-label="Continua con Google"
             >
               {oauthLoading === "google" ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -180,7 +191,7 @@ export default function SignupPage() {
               className="w-full gap-2"
               disabled={isAnyLoading}
               onClick={() => handleOAuth("github")}
-              aria-label="Continue with GitHub"
+              aria-label="Continua con GitHub"
             >
               {oauthLoading === "github" ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -194,7 +205,7 @@ export default function SignupPage() {
           {/* Divider */}
           <div className="flex items-center gap-3">
             <Separator className="flex-1" />
-            <span className="text-xs text-[#888888]">or continue with email</span>
+            <span className="text-xs text-[#888888]">oppure continua con email</span>
             <Separator className="flex-1" />
           </div>
 
@@ -229,7 +240,7 @@ export default function SignupPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Min. 8 characters"
+                placeholder="Min. 8 caratteri"
                 autoComplete="new-password"
                 required
                 minLength={8}
@@ -248,19 +259,19 @@ export default function SignupPage() {
               {loading ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Creating account…
+                  Creazione in corso…
                 </>
               ) : (
-                "Create account"
+                "Crea account"
               )}
             </Button>
           </form>
 
           {/* Sign in link */}
           <p className="text-center text-sm text-[#888888]">
-            Already have an account?{" "}
+            Hai già un account?{" "}
             <Link href="/login" className="text-[#3b82f6] hover:underline">
-              Sign in
+              Accedi
             </Link>
           </p>
         </CardContent>

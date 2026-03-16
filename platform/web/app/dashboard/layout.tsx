@@ -24,8 +24,14 @@ export default async function DashboardLayout({
 
   // -------------------------------------------------------------------------
   // Fetch orgs the user belongs to
+  //
+  // The handle_new_user trigger fires synchronously (AFTER INSERT) on
+  // auth.users, so by the time the session cookie reaches this server
+  // component the org row should already exist. A missing org indicates
+  // a trigger failure — we surface that via an empty orgs array rather
+  // than crashing, so the shell can show a graceful empty state.
   // -------------------------------------------------------------------------
-  const { data: memberRows } = await supabase
+  const { data: memberRows, error: orgsError } = await supabase
     .from("ps_org_members")
     .select(
       `
@@ -38,6 +44,10 @@ export default async function DashboardLayout({
       `
     )
     .eq("user_id", user.id);
+
+  if (orgsError) {
+    console.error("[DashboardLayout] failed to fetch org memberships", orgsError);
+  }
 
   const orgs: Org[] = (memberRows ?? []).flatMap((row) => {
     // Supabase infers the join as an array type; cast via unknown to single record

@@ -121,7 +121,7 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button size="sm" />}>
         <PlusIcon className="size-4" />
-        Create key
+        Crea chiave
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">
@@ -131,9 +131,9 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
           /* ---------------------------------------------------------------- */
           <>
             <DialogHeader>
-              <DialogTitle>Key created</DialogTitle>
+              <DialogTitle>Chiave creata</DialogTitle>
               <DialogDescription>
-                Copy your API key now. It will not be shown again.
+                Copia la chiave API ora. Non verrà più mostrata.
               </DialogDescription>
             </DialogHeader>
 
@@ -142,8 +142,8 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
               <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-400">
                 <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" />
                 <span>
-                  This key is shown only once. Store it in a secure location
-                  such as a secrets manager or environment variable.
+                  Questa chiave viene mostrata una sola volta. Salvala in un
+                  luogo sicuro come un gestore di segreti o una variabile d&apos;ambiente.
                 </span>
               </div>
 
@@ -170,7 +170,7 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
 
             <DialogFooter showCloseButton={false}>
               <DialogClose render={<Button variant="outline" size="sm" />}>
-                Done
+                Fatto
               </DialogClose>
             </DialogFooter>
           </>
@@ -180,19 +180,19 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
           /* ---------------------------------------------------------------- */
           <form onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>Create API key</DialogTitle>
+              <DialogTitle>Crea chiave API</DialogTitle>
               <DialogDescription>
-                Give your key a label and choose an environment.
+                Dai un nome alla chiave e scegli l&apos;ambiente.
               </DialogDescription>
             </DialogHeader>
 
             <div className="flex flex-col gap-4 py-4">
               {/* Label */}
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="key-label">Label</Label>
+                <Label htmlFor="key-label">Nome</Label>
                 <Input
                   id="key-label"
-                  placeholder="e.g. Production server"
+                  placeholder="es. Server di produzione"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   maxLength={80}
@@ -202,7 +202,7 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
 
               {/* Environment */}
               <div className="flex flex-col gap-1.5">
-                <Label>Environment</Label>
+                <Label>Ambiente</Label>
                 <div className="flex gap-2">
                   {(["test", "live"] as const).map((env) => (
                     <button
@@ -235,18 +235,18 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {environment === "live"
-                    ? "Live keys process real data. Use in production only."
-                    : "Test keys are safe for development and CI environments."}
+                    ? "Le chiavi Live elaborano dati reali. Usa solo in produzione."
+                    : "Le chiavi Test sono sicure per sviluppo e CI."}
                 </p>
               </div>
             </div>
 
             <DialogFooter showCloseButton={false}>
               <DialogClose render={<Button type="button" variant="outline" size="sm" />}>
-                Cancel
+                Annulla
               </DialogClose>
               <Button type="submit" size="sm" disabled={loading}>
-                {loading ? "Creating…" : "Create key"}
+                {loading ? "Creazione…" : "Crea chiave"}
               </Button>
             </DialogFooter>
           </form>

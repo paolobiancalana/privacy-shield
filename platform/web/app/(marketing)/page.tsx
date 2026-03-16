@@ -24,21 +24,21 @@ import {
 
 const stats = [
   {
-    label: "PII Types Detected",
+    label: "Tipi di PII rilevati",
     value: "10",
-    description: "Names, CF, IVA, IBAN, email, phone, address & more",
+    description: "Nomi, CF, P.IVA, IBAN, email, telefono, indirizzo e altro",
     icon: ScanSearch,
   },
   {
-    label: "API Latency",
+    label: "Latenza API",
     value: "<80ms",
-    description: "p99 end-to-end across Italian document workloads",
+    description: "p99 end-to-end su documenti aziendali italiani",
     icon: Zap,
   },
   {
-    label: "Transport Security",
+    label: "Sicurezza trasporto",
     value: "mTLS",
-    description: "Mutual TLS on every request — no plain-text secrets",
+    description: "Mutual TLS su ogni richiesta — zero segreti in chiaro",
     icon: Lock,
   },
 ];
@@ -46,30 +46,30 @@ const stats = [
 const steps = [
   {
     number: "01",
-    title: "Send your text",
+    title: "Invia il testo",
     description:
-      "POST any Italian business document — invoices, contracts, emails — to the tokenize endpoint using your API key.",
+      "Esegui una POST con qualsiasi documento aziendale italiano — fatture, contratti, email — all'endpoint /tokenize usando la tua chiave API.",
     icon: Send,
   },
   {
     number: "02",
-    title: "PII is detected",
+    title: "PII rilevata",
     description:
-      "Our NER ONNX model identifies 10 entity types in milliseconds: names, tax codes (CF), VAT numbers, IBAN, emails, phones, and addresses.",
+      "Il nostro modello NER ONNX identifica 10 tipi di entità in millisecondi: nomi, codici fiscali (CF), partite IVA, IBAN, email, telefoni e indirizzi.",
     icon: ScanSearch,
   },
   {
     number: "03",
-    title: "Tokens replace PII",
+    title: "Token sostituiscono i dati",
     description:
-      "Each detected entity is swapped for an opaque, reversible token like [PERSON_abc123]. The sanitised text is safe to store or send downstream.",
+      "Ogni entità rilevata viene sostituita da un token opaco e reversibile come [PERSON_abc123]. Il testo sanificato è sicuro da archiviare o trasmettere.",
     icon: Replace,
   },
   {
     number: "04",
-    title: "Rehydrate on demand",
+    title: "Reidrata quando serve",
     description:
-      "When you need the original data back, call /rehydrate with the token. Access is gated by your API key and optional expiry rules.",
+      "Quando hai bisogno dei dati originali, chiama /rehydrate con il token. L'accesso è controllato dalla tua chiave API e da regole di scadenza opzionali.",
     icon: RefreshCw,
   },
 ];
@@ -129,32 +129,28 @@ export default function LandingPage() {
               style={{ background: "#10b981" }}
               aria-hidden="true"
             />
-            Production-ready API — free tier available
+            Beta aperta — accesso completo e gratuito
           </div>
 
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            PII Detection API for{" "}
-            <span style={{ color: "#3b82f6" }}>Italian Business</span>{" "}
-            Documents
+            I tuoi dati personali sono a rischio.{" "}
+            <span style={{ color: "#3b82f6" }}>Ogni giorno.</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Privacy Shield detects and tokenizes personally identifiable
-            information in real time. Sub-80ms latency, mTLS transport security,
-            and full GDPR compliance — purpose-built for Italian CF, IVA, IBAN,
-            and more.
+            Una violazione dei dati può costarti fino a <strong className="text-foreground">€20 milioni o il 4% del fatturato</strong> in sanzioni GDPR — oltre al danno reputazionale. Privacy Shield rileva e tokenizza automaticamente i dati personali in tempo reale: codice fiscale, partita IVA, IBAN, email e molto altro. Latenza inferiore a 80ms, sicurezza mTLS, pronto per la produzione.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/signup">
               <Button size="lg" className="gap-2">
-                Get Started Free
+                Proteggi i tuoi dati
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
             <Link href="/docs">
               <Button variant="outline" size="lg">
-                View Docs
+                Documentazione API
               </Button>
             </Link>
           </div>
@@ -204,10 +200,10 @@ export default function LandingPage() {
               id="how-it-works-heading"
               className="text-3xl font-bold tracking-tight text-foreground"
             >
-              How it works
+              Come funziona
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Four simple steps from raw document to safe, rehydratable output.
+              Quattro semplici passaggi dal documento grezzo all'output sanificato e reidratabile.
             </p>
           </div>
 
@@ -259,10 +255,10 @@ export default function LandingPage() {
               id="code-example-heading"
               className="text-3xl font-bold tracking-tight text-foreground"
             >
-              One API call away
+              Una sola chiamata API
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Integrate in minutes with any language or HTTP client.
+              Integra in pochi minuti con qualsiasi linguaggio o client HTTP.
             </p>
           </div>
 
@@ -270,7 +266,7 @@ export default function LandingPage() {
             {/* Request */}
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Request
+                Richiesta
               </p>
               <div
                 className="overflow-x-auto rounded-xl border border-border p-5"
@@ -285,7 +281,7 @@ export default function LandingPage() {
             {/* Response */}
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Response
+                Risposta
               </p>
               <div
                 className="overflow-x-auto rounded-xl border border-border p-5"
@@ -341,22 +337,21 @@ export default function LandingPage() {
             aria-hidden="true"
           />
           <h2 className="text-2xl font-bold text-foreground">
-            Transparent, usage-based pricing
+            Gratis durante la Beta
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Start free with 1 000 tokens per month. Scale to 5 M tokens on
-            Enterprise. No hidden fees.
+            500K token/mese, 200 req/min, 20 chiavi API. Nessuna carta di credito. Nessun vincolo.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/pricing">
+            <Link href="/signup">
               <Button size="lg" className="gap-2">
-                View Pricing
+                Inizia la Beta
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
-            <Link href="/signup">
+            <Link href="/docs">
               <Button variant="outline" size="lg">
-                Start Free — no credit card
+                Leggi la Documentazione
               </Button>
             </Link>
           </div>

@@ -52,9 +52,9 @@ export function KeysManager({ initialKeys, orgId }: KeysManagerProps) {
       {/* Header row */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">API Keys</h1>
+          <h1 className="text-xl font-semibold">Chiavi API</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage API keys for your organization.
+            Gestisci le chiavi API della tua organizzazione.
           </p>
         </div>
         {orgId && (
@@ -66,9 +66,9 @@ export function KeysManager({ initialKeys, orgId }: KeysManagerProps) {
       {keys.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-16 text-center">
           <KeyRoundIcon className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="text-sm font-medium text-foreground">No API keys yet</p>
+          <p className="text-sm font-medium text-foreground">Nessuna chiave API</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Create one to start using the API.
+            Creane una per iniziare a usare l&apos;API.
           </p>
         </div>
       ) : (

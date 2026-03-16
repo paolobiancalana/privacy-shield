@@ -48,9 +48,9 @@ function formatDate(iso: string): string {
 }
 
 const DAY_OPTIONS = [
-  { value: "7", label: "7 days" },
-  { value: "30", label: "30 days" },
-  { value: "90", label: "90 days" },
+  { value: "7", label: "7 giorni" },
+  { value: "30", label: "30 giorni" },
+  { value: "90", label: "90 giorni" },
 ] as const;
 
 function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
@@ -68,23 +68,23 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
 
   const summaryCards = [
     {
-      title: "Total Calls",
+      title: "Chiamate totali",
       value: formatNumber(summary.totalCalls),
-      description: `Last ${activeDays} days`,
+      description: `Ultimi ${activeDays} giorni`,
       icon: ActivityIcon,
       color: "text-blue-400",
     },
     {
-      title: "Tokens Created",
+      title: "Token creati",
       value: formatNumber(summary.tokensCreated),
-      description: `Last ${activeDays} days`,
+      description: `Ultimi ${activeDays} giorni`,
       icon: KeyRoundIcon,
       color: "text-violet-400",
     },
     {
-      title: "Monthly Usage",
+      title: "Utilizzo mensile",
       value: `${summary.percentUsed}%`,
-      description: `of ${formatNumber(summary.monthlyLimit)} token limit`,
+      description: `del limite di ${formatNumber(summary.monthlyLimit)} token`,
       icon: PercentIcon,
       color:
         summary.percentUsed >= 90
@@ -94,12 +94,12 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
             : "text-emerald-400",
     },
     {
-      title: "Avg Latency (p95)",
+      title: "Latenza media (p95)",
       value:
         summary.avgLatencyMs !== null
           ? `${summary.avgLatencyMs} ms`
           : "—",
-      description: `Last ${activeDays} days`,
+      description: `Ultimi ${activeDays} giorni`,
       icon: ZapIcon,
       color: "text-amber-400",
     },
@@ -108,9 +108,9 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Usage</h1>
+        <h1 className="text-xl font-semibold">Utilizzo</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Monitor your API consumption and performance.
+          Monitora il consumo e le prestazioni delle tue API.
         </p>
       </div>
 
@@ -142,8 +142,8 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
       {/* Monthly usage progress */}
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Quota</CardTitle>
-          <CardDescription>Resets on the 1st of each month.</CardDescription>
+          <CardTitle>Quota mensile</CardTitle>
+          <CardDescription>Si resetta il 1° di ogni mese.</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex flex-col gap-2">
@@ -179,12 +179,12 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
                 variant="outline"
                 className="border-amber-500/40 bg-amber-500/10 text-amber-400 text-xs"
               >
-                {summary.percentUsed >= 95 ? "Critical" : "Warning"}
+                {summary.percentUsed >= 95 ? "Critico" : "Attenzione"}
               </Badge>
               <span className="text-xs text-muted-foreground">
                 {summary.percentUsed >= 95
-                  ? "Approaching your monthly limit. Upgrade to avoid disruptions."
-                  : "You are using more than 80% of your monthly quota."}
+                  ? "Stai avvicinandoti al limite mensile. Aggiorna il piano per evitare interruzioni."
+                  : "Stai usando oltre l'80% della tua quota mensile."}
               </span>
             </div>
           )}
@@ -196,8 +196,8 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>Daily Breakdown</CardTitle>
-              <CardDescription>Per-day API activity.</CardDescription>
+              <CardTitle>Dettaglio giornaliero</CardTitle>
+              <CardDescription>Attività API giornaliera.</CardDescription>
             </div>
 
             <Tabs
@@ -223,18 +223,18 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <ActivityIcon className="mb-2 size-8 text-muted-foreground/40" />
               <p className="text-sm text-muted-foreground">
-                No usage data for this period.
+                Nessun dato di utilizzo per questo periodo.
               </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Tokenize</TableHead>
-                  <TableHead className="text-right">Rehydrate</TableHead>
-                  <TableHead className="text-right">Tokens</TableHead>
-                  <TableHead className="text-right">p95 Latency</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead className="text-right">Tokenizza</TableHead>
+                  <TableHead className="text-right">Reidrata</TableHead>
+                  <TableHead className="text-right">Token</TableHead>
+                  <TableHead className="text-right">Latenza p95</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

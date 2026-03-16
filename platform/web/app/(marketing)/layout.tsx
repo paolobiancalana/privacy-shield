@@ -39,24 +39,24 @@ export default function MarketingLayout({
               href="/pricing"
               className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              Pricing
+              Piani
             </Link>
             <Link
               href="/docs"
               className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              Docs
+              Documentazione
             </Link>
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
             <Link href="/login">
               <Button variant="ghost" size="sm">
-                Sign In
+                Accedi
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="sm">Get Started</Button>
+              <Button size="sm">Inizia Gratis</Button>
             </Link>
           </div>
 
@@ -64,7 +64,7 @@ export default function MarketingLayout({
           <button
             className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden"
             onClick={() => setMobileOpen((prev) => !prev)}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-label={mobileOpen ? "Chiudi menu" : "Apri menu"}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? (
@@ -81,30 +81,30 @@ export default function MarketingLayout({
             className="border-t border-border px-6 py-4 md:hidden"
             style={{ background: "#0f0f1a" }}
           >
-            <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
+            <nav className="flex flex-col gap-1" aria-label="Navigazione mobile">
               <Link
                 href="/pricing"
                 className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
               >
-                Pricing
+                Piani
               </Link>
               <Link
                 href="/docs"
                 className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
               >
-                Docs
+                Documentazione
               </Link>
               <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
                 <Link href="/login" onClick={() => setMobileOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full">
-                    Sign In
+                    Accedi
                   </Button>
                 </Link>
                 <Link href="/signup" onClick={() => setMobileOpen(false)}>
                   <Button size="sm" className="w-full">
-                    Get Started
+                    Inizia Gratis
                   </Button>
                 </Link>
               </div>
@@ -132,17 +132,17 @@ export default function MarketingLayout({
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/pricing" className="transition-colors hover:text-foreground">
-                Pricing
+                Piani
               </Link>
               <Link href="/docs" className="transition-colors hover:text-foreground">
-                Docs
+                Documentazione
               </Link>
               <Link href="/login" className="transition-colors hover:text-foreground">
-                Sign In
+                Accedi
               </Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Privacy Shield. All rights reserved.
+              &copy; {new Date().getFullYear()} Privacy Shield. Tutti i diritti riservati.
             </p>
           </div>
         </div>

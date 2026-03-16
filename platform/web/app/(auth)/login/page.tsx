@@ -73,7 +73,7 @@ function LoginForm() {
   useEffect(() => {
     if (searchParams.get("error") === "auth") {
       setErrorMessage(
-        "Authentication failed. Please try again or use a different method."
+        "Autenticazione non riuscita. Riprova o usa un metodo diverso."
       );
     }
   }, [searchParams]);
@@ -123,10 +123,10 @@ function LoginForm() {
     <Card className="w-full max-w-md bg-[#1a1a2e]">
       <CardHeader className="space-y-1 pb-2">
         <CardTitle className="text-center text-2xl font-semibold text-white">
-          Welcome back
+          Bentornato
         </CardTitle>
         <CardDescription className="text-center text-[#888888]">
-          Sign in to your Privacy Shield account
+          Accedi al tuo account Privacy Shield
         </CardDescription>
       </CardHeader>
 
@@ -139,7 +139,7 @@ function LoginForm() {
             className="w-full gap-2"
             disabled={isAnyLoading}
             onClick={() => handleOAuth("google")}
-            aria-label="Continue with Google"
+            aria-label="Continua con Google"
           >
             {oauthLoading === "google" ? (
               <Loader2 className="size-4 animate-spin" />
@@ -155,7 +155,7 @@ function LoginForm() {
             className="w-full gap-2"
             disabled={isAnyLoading}
             onClick={() => handleOAuth("github")}
-            aria-label="Continue with GitHub"
+            aria-label="Continua con GitHub"
           >
             {oauthLoading === "github" ? (
               <Loader2 className="size-4 animate-spin" />
@@ -169,7 +169,7 @@ function LoginForm() {
         {/* Divider */}
         <div className="flex items-center gap-3">
           <Separator className="flex-1" />
-          <span className="text-xs text-[#888888]">or continue with email</span>
+          <span className="text-xs text-[#888888]">oppure continua con email</span>
           <Separator className="flex-1" />
         </div>
 
@@ -207,7 +207,7 @@ function LoginForm() {
                 className="text-xs text-[#3b82f6] hover:underline"
                 tabIndex={0}
               >
-                Forgot password?
+                Password dimenticata?
               </Link>
             </div>
             <Input
@@ -231,22 +231,22 @@ function LoginForm() {
             {loading ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Signing in…
+                Accesso in corso…
               </>
             ) : (
-              "Sign in"
+              "Accedi"
             )}
           </Button>
         </form>
 
         {/* Sign up link */}
         <p className="text-center text-sm text-[#888888]">
-          Don&apos;t have an account?{" "}
+          Non hai un account?{" "}
           <Link
             href="/signup"
             className="text-[#3b82f6] hover:underline"
           >
-            Sign up
+            Registrati
           </Link>
         </p>
       </CardContent>

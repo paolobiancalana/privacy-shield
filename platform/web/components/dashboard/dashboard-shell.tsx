@@ -58,41 +58,41 @@ interface DashboardShellProps {
 const navLinks = [
   {
     href: "/dashboard/usage",
-    label: "Usage",
+    label: "Utilizzo",
     icon: BarChart3Icon,
     external: false,
   },
   {
     href: "/dashboard/keys",
-    label: "API Keys",
+    label: "Chiavi API",
     icon: KeyRoundIcon,
     external: false,
   },
   {
     href: "/dashboard/settings",
-    label: "Settings",
+    label: "Impostazioni",
     icon: SettingsIcon,
     external: false,
   },
   {
     href: "/dashboard/billing",
-    label: "Billing",
+    label: "Fatturazione",
     icon: CreditCardIcon,
     external: false,
   },
   {
     href: "https://docs.privacyshield.pro",
-    label: "Docs",
+    label: "Documentazione",
     icon: ExternalLinkIcon,
     external: true,
   },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
-  "/dashboard/usage": "Usage",
-  "/dashboard/keys": "API Keys",
-  "/dashboard/settings": "Settings",
-  "/dashboard/billing": "Billing",
+  "/dashboard/usage": "Utilizzo",
+  "/dashboard/keys": "Chiavi API",
+  "/dashboard/settings": "Impostazioni",
+  "/dashboard/billing": "Fatturazione",
 };
 
 // ---------------------------------------------------------------------------
@@ -175,12 +175,12 @@ export function DashboardShell({
               >
                 <span className="flex items-center gap-2 truncate">
                   <BuildingIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{selectedOrg?.name ?? "Select org"}</span>
+                  <span className="truncate">{selectedOrg?.name ?? "Seleziona org"}</span>
                 </span>
                 <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-52">
-                <DropdownMenuLabel>Organizations</DropdownMenuLabel>
+                <DropdownMenuLabel>Organizzazioni</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {orgs.map((org) => (
                   <DropdownMenuItem
@@ -200,7 +200,7 @@ export function DashboardShell({
             <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm">
               <BuildingIcon className="size-3.5 shrink-0 text-muted-foreground" />
               <span className="truncate text-foreground">
-                {selectedOrg?.name ?? "No org"}
+                {selectedOrg?.name ?? "Nessuna org"}
               </span>
             </div>
           )}
@@ -262,7 +262,7 @@ export function DashboardShell({
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-xs text-muted-foreground truncate">
-                    Signed in as
+                    Connesso come
                   </span>
                   <span className="text-sm truncate">{user.email}</span>
                 </div>
@@ -274,7 +274,7 @@ export function DashboardShell({
                 disabled={isPending}
               >
                 <LogOutIcon className="size-4" />
-                {isPending ? "Signing out…" : "Sign out"}
+                {isPending ? "Disconnessione…" : "Esci"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

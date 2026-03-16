@@ -43,9 +43,9 @@ export function BillingView({ billing }: BillingViewProps) {
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
       <div>
-        <h1 className="text-xl font-semibold">Billing</h1>
+        <h1 className="text-xl font-semibold">Fatturazione</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage your subscription and view usage.
+          Gestisci il tuo abbonamento e visualizza l&apos;utilizzo.
         </p>
       </div>
 
@@ -54,8 +54,8 @@ export function BillingView({ billing }: BillingViewProps) {
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <CardTitle>Current plan</CardTitle>
-              <CardDescription>Monthly subscription</CardDescription>
+              <CardTitle>Piano attuale</CardTitle>
+              <CardDescription>Abbonamento mensile</CardDescription>
             </div>
             <PlanBadge plan={billing.planId} />
           </div>
@@ -65,7 +65,7 @@ export function BillingView({ billing }: BillingViewProps) {
           {/* API Calls */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">API Calls (this month)</span>
+              <span className="font-medium">Chiamate API (questo mese)</span>
               <span className="tabular-nums text-muted-foreground">
                 {formatNumber(billing.callsUsed)}
               </span>
@@ -75,7 +75,7 @@ export function BillingView({ billing }: BillingViewProps) {
           {/* Tokens */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">Tokens Created</span>
+              <span className="font-medium">Token creati</span>
               <span className="tabular-nums text-muted-foreground">
                 {formatNumber(billing.tokensUsed)} /{" "}
                 {formatNumber(billing.monthlyTokenLimit)}
@@ -91,7 +91,7 @@ export function BillingView({ billing }: BillingViewProps) {
             </div>
             {tokensPercent >= 80 && (
               <p className="text-xs text-amber-400">
-                You are using {tokensPercent}% of your monthly token quota.
+                Stai usando il {tokensPercent}% della tua quota mensile di token.
               </p>
             )}
           </div>
@@ -100,12 +100,12 @@ export function BillingView({ billing }: BillingViewProps) {
         {showUpgrade && (
           <CardFooter className="flex items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">
-              Upgrade to get higher limits and priority support.
+              Passa a un piano superiore per limiti più alti e supporto prioritario.
             </p>
             <Link href="/pricing">
               <Button size="sm">
                 <ArrowUpCircleIcon className="size-4" />
-                Upgrade
+                Aggiorna piano
               </Button>
             </Link>
           </CardFooter>
@@ -115,16 +115,16 @@ export function BillingView({ billing }: BillingViewProps) {
       {/* Invoice history placeholder */}
       <Card>
         <CardHeader>
-          <CardTitle>Invoice history</CardTitle>
+          <CardTitle>Storico fatture</CardTitle>
           <CardDescription>
-            Past invoices for your subscription.
+            Fatture precedenti per il tuo abbonamento.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <p className="text-sm text-muted-foreground">No invoices yet.</p>
+            <p className="text-sm text-muted-foreground">Nessuna fattura.</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Your invoices will appear here once you upgrade to a paid plan.
+              Le fatture appariranno qui quando passerai a un piano a pagamento.
             </p>
           </div>
         </CardContent>

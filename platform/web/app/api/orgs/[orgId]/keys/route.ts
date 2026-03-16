@@ -155,7 +155,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     );
   }
 
-  const validEnvironments = ["production", "staging", "development", "test"];
+  const validEnvironments = ["live", "test"];
   if (!validEnvironments.includes(environment)) {
     return NextResponse.json(
       {
