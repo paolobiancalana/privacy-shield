@@ -169,7 +169,13 @@ class ONNXNerEngine:
 
 # ── FastAPI ───────────────────────────────────────────────────────────
 
-app = FastAPI(title="Privacy Shield PII", version="2.0")
+app = FastAPI(
+    title="Privacy Shield PII",
+    version="2.0",
+    docs_url=None,     # disable Swagger UI in production
+    redoc_url=None,    # disable ReDoc in production
+    openapi_url=None,  # disable OpenAPI schema in production
+)
 engine: ONNXNerEngine | None = None
 
 
