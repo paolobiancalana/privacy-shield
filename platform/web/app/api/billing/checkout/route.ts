@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/client";
+import { getStripe } from "@/lib/stripe/client";
 
 // Map plan_id to Stripe price IDs.
 // These must match the price IDs in your Stripe dashboard and can be
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
   // Create a Stripe customer if one does not exist yet
   if (!stripeCustomerId) {
     try {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         name: org.name,
         email: user.email,
         metadata: {
@@ -168,7 +168,7 @@ export async function POST(request: Request) {
 
   // Create the Stripe Checkout session
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: stripeCustomerId,
       mode: "subscription",
       line_items: [
