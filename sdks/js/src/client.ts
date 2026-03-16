@@ -238,23 +238,27 @@ export class PrivacyShield {
    * HTTPS POST with mTLS client certificates (Node.js only).
    * Uses node:https.Agent for TLS client authentication.
    */
-  private postWithMtls(
+  private async postWithMtls(
     url: string,
     body: unknown,
     headers: Record<string, string>,
   ): Promise<Record<string, unknown>> {
-    // Dynamic import to keep browser compatibility
-    const https = require('node:https') as typeof import('node:https');
-    const { URL } = require('node:url') as typeof import('node:url');
+    // Dynamic import for ESM compatibility (no require in ESM)
+    const https = await import('node:https');
+    const { URL } = await import('node:url');
 
     if (!this.httpsAgent) {
-      this.httpsAgent = new https.Agent({
+      const agentOptions: Record<string, unknown> = {
         cert: this.clientCert,
         key: this.clientKey,
-        ca: this.caCert,
         rejectUnauthorized: true,
         keepAlive: true,
-      });
+      };
+      // Only set ca if provided — otherwise use system CAs (e.g. Let's Encrypt)
+      if (this.caCert) {
+        agentOptions.ca = this.caCert;
+      }
+      this.httpsAgent = new https.Agent(agentOptions);
     }
 
     return new Promise((resolve, reject) => {

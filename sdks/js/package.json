@@ -1,6 +1,6 @@
 {
   "name": "@privacyshield/sdk",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Privacy Shield PII Detection SDK for Node.js and browsers",
   "type": "module",
   "main": "dist/index.js",
