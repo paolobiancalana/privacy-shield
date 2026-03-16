@@ -1,0 +1,20 @@
+# privacy-shield/requirements.txt
+# Python 3.12+ required
+
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+
+# Redis async client with hiredis C parser for performance
+redis[hiredis]>=5.2.0
+
+# Data validation and settings
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+
+# AES-256-GCM authenticated encryption (PyCA, NOT PyCryptodome)
+cryptography>=44.0.0
+
+# NER inference (ONNX Runtime, no PyTorch needed)
+onnxruntime>=1.17.0
+transformers>=4.40.0

@@ -1,0 +1,49 @@
+# privacy-shield/docker-compose.yml
+# Local development and integration testing stack.
+# Production deploys use Kubernetes (see plans/privacy-shield.md).
+
+version: "3.9"
+
+services:
+  privacy-shield:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PRIVACY_SHIELD_KEK_BASE64=${PRIVACY_SHIELD_KEK_BASE64}
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - TOKEN_TTL_SECONDS=${TOKEN_TTL_SECONDS:-60}
+      - APP_VERSION=1.0.0
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    # No privileged mode needed — app runs as non-root (uid 1001)
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --maxmemory 100mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    restart: unless-stopped
