@@ -1,0 +1,121 @@
+name: Health Monitor
+
+on:
+  schedule:
+    # Every 5 minutes
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Privacy Shield health
+        id: health
+        run: |
+          HTTP_CODE=$(curl -sf -o /tmp/health.json -w "%{http_code}" \
+            --connect-timeout 10 --max-time 15 \
+            https://api.privacyshield.pro/health 2>/dev/null || echo "000")
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            STATUS=$(cat /tmp/health.json | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])" 2>/dev/null || echo "parse_error")
+            REDIS=$(cat /tmp/health.json | python3 -c "import sys,json; print(json.load(sys.stdin)['components']['redis']['status'])" 2>/dev/null || echo "unknown")
+            CRYPTO=$(cat /tmp/health.json | python3 -c "import sys,json; print(json.load(sys.stdin)['components']['crypto']['status'])" 2>/dev/null || echo "unknown")
+
+            echo "status=$STATUS" >> $GITHUB_OUTPUT
+            echo "redis=$REDIS" >> $GITHUB_OUTPUT
+            echo "crypto=$CRYPTO" >> $GITHUB_OUTPUT
+            echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+
+            if [ "$STATUS" != "healthy" ]; then
+              echo "DEGRADED: status=$STATUS redis=$REDIS crypto=$CRYPTO"
+              echo "healthy=false" >> $GITHUB_OUTPUT
+            else
+              echo "OK: status=healthy redis=$REDIS crypto=$CRYPTO"
+              echo "healthy=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "DOWN: HTTP $HTTP_CODE"
+            echo "status=unreachable" >> $GITHUB_OUTPUT
+            echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+            echo "healthy=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create incident issue
+        if: steps.health.outputs.healthy == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.health.outputs.status }}';
+            const httpCode = '${{ steps.health.outputs.http_code }}';
+            const redis = '${{ steps.health.outputs.redis }}' || 'unknown';
+            const crypto = '${{ steps.health.outputs.crypto }}' || 'unknown';
+
+            // Check if there's already an open incident
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'incident',
+              state: 'open',
+            });
+
+            if (issues.length > 0) {
+              // Add comment to existing incident
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues[0].number,
+                body: `Still down at ${new Date().toISOString()}\nHTTP: ${httpCode} | Status: ${status} | Redis: ${redis} | Crypto: ${crypto}`,
+              });
+              return;
+            }
+
+            // Create new incident
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[INCIDENT] Privacy Shield ${status === 'unreachable' ? 'DOWN' : 'DEGRADED'}`,
+              body: [
+                `## Privacy Shield Incident`,
+                ``,
+                `**Detected:** ${new Date().toISOString()}`,
+                `**HTTP Status:** ${httpCode}`,
+                `**Service Status:** ${status}`,
+                `**Redis:** ${redis}`,
+                `**Crypto:** ${crypto}`,
+                ``,
+                `### Checklist`,
+                `- [ ] Acknowledged`,
+                `- [ ] Root cause identified`,
+                `- [ ] Fix deployed`,
+                `- [ ] Post-mortem written`,
+              ].join('\n'),
+              labels: ['incident', 'priority:critical'],
+            });
+
+      - name: Auto-close incident if recovered
+        if: steps.health.outputs.healthy == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'incident',
+              state: 'open',
+            });
+
+            for (const issue of issues) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Recovered at ${new Date().toISOString()}. Auto-closing.`,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+              });
+            }

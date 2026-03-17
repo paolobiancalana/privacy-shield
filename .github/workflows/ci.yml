@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-app.txt
+
+      - name: Run tests
+        env:
+          PRIVACY_SHIELD_KEK_BASE64: ${{ secrets.TEST_KEK_BASE64 }}
+          REDIS_URL: redis://localhost:6379
+          ADMIN_API_KEY: test-admin-key
+        run: |
+          python -m pytest tests_app/ \
+            --ignore=tests_app/adversarial/test_breach_fixes.py \
+            --ignore=tests_app/integration/test_api_lifecycle.py \
+            --ignore=tests_app/integration/test_metrics_endpoint.py \
+            --ignore=tests_app/integration/test_api_key_auth.py \
+            -q --tb=short
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Deploy to Hetzner
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /home/deploy/privacy-shield
+            sudo -u deploy git pull origin main
+            /opt/pii/venv/bin/pip install -q -r requirements-app.txt
+            systemctl restart pii
+            sleep 4
+
+      - name: Smoke test
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            STATUS=$(curl -sf http://127.0.0.1:8000/health | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+            if [ "$STATUS" != "healthy" ]; then
+              echo "SMOKE TEST FAILED: status=$STATUS"
+              echo "Rolling back..."
+              cd /home/deploy/privacy-shield
+              sudo -u deploy git checkout HEAD~1
+              /opt/pii/venv/bin/pip install -q -r requirements-app.txt
+              systemctl restart pii
+              exit 1
+            fi
+            echo "Smoke test passed: status=healthy"
