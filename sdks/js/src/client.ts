@@ -12,6 +12,7 @@ import type {
   FlushRequest,
   FlushResponse,
   HealthResponse,
+  MetricsCallback,
   PrivacyShieldConfig,
   PrivacyShieldError,
   RehydrateRequest,
@@ -61,6 +62,7 @@ export class PrivacyShield {
   private readonly clientCert?: string | Buffer;
   private readonly clientKey?: string | Buffer;
   private readonly caCert?: string | Buffer;
+  private readonly metrics?: MetricsCallback;
   private httpsAgent: unknown | null = null;
 
   constructor(config: PrivacyShieldConfig) {
@@ -74,6 +76,7 @@ export class PrivacyShield {
     this.clientCert = config.clientCert;
     this.clientKey = config.clientKey;
     this.caCert = config.caCert;
+    this.metrics = config.metrics;
   }
 
   // ── Public API ──────────────────────────────────────────────────
@@ -85,28 +88,37 @@ export class PrivacyShield {
    * Use `rehydrate()` to restore original values, and `flush()` to delete.
    */
   async tokenize(request: TokenizeRequest): Promise<TokenizeResponse> {
-    const body = {
-      texts: request.texts,
-      organization_id: request.organizationId,
-      request_id: request.requestId,
-      existing_tokens: request.existingTokens ?? {},
-    };
+    const t0 = performance.now();
+    try {
+      const body = {
+        texts: request.texts,
+        organization_id: request.organizationId,
+        request_id: request.requestId,
+        existing_tokens: request.existingTokens ?? {},
+      };
 
-    const raw = await this.post('/api/v1/tokenize', body);
+      const raw = await this.post('/api/v1/tokenize', body);
 
-    return {
-      tokenizedTexts: raw.tokenized_texts as string[],
-      tokens: (raw.tokens as Array<Record<string, unknown>>).map((t) => ({
-        token: t.token as string,
-        original: t.original as string,
-        type: t.type as TokenizeResponse['tokens'][0]['type'],
-        start: t.start as number,
-        end: t.end as number,
-        source: t.source as TokenizeResponse['tokens'][0]['source'],
-      })),
-      detectionMs: raw.detection_ms as number,
-      tokenizationMs: raw.tokenization_ms as number,
-    };
+      const result: TokenizeResponse = {
+        tokenizedTexts: raw.tokenized_texts as string[],
+        tokens: (raw.tokens as Array<Record<string, unknown>>).map((t) => ({
+          token: t.token as string,
+          original: t.original as string,
+          type: t.type as TokenizeResponse['tokens'][0]['type'],
+          start: t.start as number,
+          end: t.end as number,
+          source: t.source as TokenizeResponse['tokens'][0]['source'],
+        })),
+        detectionMs: raw.detection_ms as number,
+        tokenizationMs: raw.tokenization_ms as number,
+      };
+      this.emitMetric('tokenize', t0, 200);
+      return result;
+    } catch (err) {
+      const statusCode = err instanceof PrivacyShieldApiError ? err.statusCode : 0;
+      this.emitMetric('tokenize', t0, statusCode, err instanceof Error ? err.message : String(err));
+      throw err;
+    }
   }
 
   /**
@@ -116,18 +128,27 @@ export class PrivacyShield {
    * After flush(), rehydration returns tokens unchanged.
    */
   async rehydrate(request: RehydrateRequest): Promise<RehydrateResponse> {
-    const body = {
-      text: request.text,
-      organization_id: request.organizationId,
-      request_id: request.requestId,
-    };
+    const t0 = performance.now();
+    try {
+      const body = {
+        text: request.text,
+        organization_id: request.organizationId,
+        request_id: request.requestId,
+      };
 
-    const raw = await this.post('/api/v1/rehydrate', body);
+      const raw = await this.post('/api/v1/rehydrate', body);
 
-    return {
-      text: raw.text as string,
-      rehydratedCount: raw.rehydrated_count as number,
-    };
+      const result: RehydrateResponse = {
+        text: raw.text as string,
+        rehydratedCount: raw.rehydrated_count as number,
+      };
+      this.emitMetric('rehydrate', t0, 200);
+      return result;
+    } catch (err) {
+      const statusCode = err instanceof PrivacyShieldApiError ? err.statusCode : 0;
+      this.emitMetric('rehydrate', t0, statusCode, err instanceof Error ? err.message : String(err));
+      throw err;
+    }
   }
 
   /**
@@ -137,22 +158,55 @@ export class PrivacyShield {
    * This is the normal cleanup step after a conversation turn.
    */
   async flush(request: FlushRequest): Promise<FlushResponse> {
-    const body = {
-      organization_id: request.organizationId,
-      request_id: request.requestId,
-    };
+    const t0 = performance.now();
+    try {
+      const body = {
+        organization_id: request.organizationId,
+        request_id: request.requestId,
+      };
 
-    const raw = await this.post('/api/v1/flush', body);
+      const raw = await this.post('/api/v1/flush', body);
 
-    return {
-      flushedCount: raw.flushed_count as number,
-    };
+      const result: FlushResponse = {
+        flushedCount: raw.flushed_count as number,
+      };
+      this.emitMetric('flush', t0, 200);
+      return result;
+    } catch (err) {
+      const statusCode = err instanceof PrivacyShieldApiError ? err.statusCode : 0;
+      this.emitMetric('flush', t0, statusCode, err instanceof Error ? err.message : String(err));
+      throw err;
+    }
   }
 
   /** Check service health. Does not require API key. */
   async health(): Promise<HealthResponse> {
-    const raw = await this.get('/health');
-    return raw as unknown as HealthResponse;
+    const t0 = performance.now();
+    try {
+      const raw = await this.get('/health');
+      const result = raw as unknown as HealthResponse;
+      this.emitMetric('health', t0, 200);
+      return result;
+    } catch (err) {
+      const statusCode = err instanceof PrivacyShieldApiError ? err.statusCode : 0;
+      this.emitMetric('health', t0, statusCode, err instanceof Error ? err.message : String(err));
+      throw err;
+    }
+  }
+
+  // ── Telemetry helper ────────────────────────────────────────────
+
+  private emitMetric(operation: string, t0: number, statusCode: number, error?: string): void {
+    try {
+      this.metrics?.onRequest({
+        operation,
+        durationMs: performance.now() - t0,
+        statusCode,
+        error,
+      });
+    } catch {
+      // Telemetry must never break the caller
+    }
   }
 
   // ── HTTP internals ──────────────────────────────────────────────

@@ -31,6 +31,7 @@ import fakeredis.aioredis
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from app.application.create_api_key import CreateApiKeyUseCase
 from app.container import Container
 from app.infrastructure.config import Settings
 from app.main import create_app
@@ -58,7 +59,11 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 async def client(test_settings: Settings) -> AsyncClient:
-    """Create a test client with fakeredis injected into the container."""
+    """Create a test client with fakeredis injected into the container.
+
+    Plan enforcement is disabled (org_plan_port=None on use cases) so that
+    these tests can control rate_limit_per_minute directly via the admin API.
+    """
     app = create_app(settings=test_settings)
 
     fake_redis = fakeredis.aioredis.FakeRedis(decode_responses=False)
@@ -66,6 +71,11 @@ async def client(test_settings: Settings) -> AsyncClient:
     container = Container(config=test_settings)
     container._redis = fake_redis
     _ = container.crypto_port  # triggers KEK validation
+
+    # Disable plan enforcement so rate_limit param is honoured as-is.
+    container._create_api_key_use_case = CreateApiKeyUseCase(
+        api_key_port=container.api_key_port, org_plan_port=None
+    )
     app.state.container = container
 
     transport = ASGITransport(app=app)

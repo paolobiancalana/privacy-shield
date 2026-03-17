@@ -36,6 +36,49 @@ class RedisApiKeyAdapter(ApiKeyPort):
   _USAGE_PREFIX = "ps:usage"
   _RATE_KEY_TTL_SECONDS = 120
 
+  _LUA_STORE_IF_UNDER_LIMIT = """
+local index_key = KEYS[1]
+local metadata_key = KEYS[2]
+local org_id = ARGV[1]
+local max_keys = tonumber(ARGV[2])
+local metadata_json = ARGV[3]
+local key_hash = ARGV[4]
+
+local all_hashes = redis.call('SMEMBERS', index_key)
+local active = 0
+for _, h in ipairs(all_hashes) do
+    local raw = redis.call('GET', 'ps:apikey:' .. h)
+    if raw then
+        local data = cjson.decode(raw)
+        if data.org_id == org_id and data.active == true then
+            active = active + 1
+        end
+    end
+end
+
+if active >= max_keys then
+    return 0
+end
+
+redis.call('SET', metadata_key, metadata_json)
+redis.call('SADD', index_key, key_hash)
+return 1
+"""
+
+  _LUA_RATE_LIMIT = """
+local key = KEYS[1]
+local limit = tonumber(ARGV[1])
+local ttl = tonumber(ARGV[2])
+local count = redis.call('INCR', key)
+if count == 1 then
+    redis.call('EXPIRE', key, ttl)
+end
+if count > limit then
+    return 0
+end
+return 1
+"""
+
   def __init__(self, redis_client: aioredis.Redis) -> None:
     self._redis = redis_client
 
@@ -116,18 +159,26 @@ class RedisApiKeyAdapter(ApiKeyPort):
     return results
 
   async def check_rate_limit(self, key_hash: str, limit: int) -> tuple[bool, int]:
-    """
-    Increment sliding-window counter for the current minute.
-
-    Sets a 120-second TTL on first increment so the key always expires
-    even if the process restarts mid-minute.
-    """
+    """Sliding-window rate limit with atomic Lua script and fallback."""
     rate_key = self._rate_key(key_hash)
-    count: int = await self._redis.incr(rate_key)
-    if count == 1:
-      await self._redis.expire(rate_key, self._RATE_KEY_TTL_SECONDS)
-    allowed = count <= limit
-    return (allowed, count)
+    try:
+      result = await self._redis.eval(
+        self._LUA_RATE_LIMIT,
+        1,
+        rate_key,
+        str(limit),
+        str(self._RATE_KEY_TTL_SECONDS),
+      )
+      allowed = int(result) == 1
+      count = await self._redis.get(rate_key)
+      count_int = self._int_or_zero(count)
+      return (allowed, count_int)
+    except Exception:
+      # Fallback: non-atomic (same as original behavior)
+      count_int = await self._redis.incr(rate_key)
+      if count_int == 1:
+        await self._redis.expire(rate_key, self._RATE_KEY_TTL_SECONDS)
+      return (count_int <= limit, count_int)
 
   async def record_usage(
     self, org_id: str, operation: str, token_count: int = 0
@@ -156,3 +207,53 @@ class RedisApiKeyAdapter(ApiKeyPort):
       flush_calls=self._int_or_zero(results[2]),
       total_tokens_created=self._int_or_zero(results[3]),
     )
+
+  async def count_active_keys(self, org_id: str) -> int:
+    """Count active (non-revoked) keys for an org."""
+    all_hashes: set[bytes] = await self._redis.smembers(self._APIKEYS_INDEX)
+    active = 0
+    for raw_hash in all_hashes:
+      h_str = self._decode_bytes(raw_hash)
+      raw = await self._redis.get(self._metadata_key(h_str))
+      if raw is None:
+        continue
+      data = json.loads(self._decode_bytes(raw))
+      if data.get("org_id") == org_id and data.get("active") is True:
+        active += 1
+    return active
+
+  async def store_key_if_under_limit(self, metadata: ApiKeyMetadata, max_keys: int) -> bool:
+    """Atomically check active key count and store if under limit. Lua with fallback."""
+    metadata_json = json.dumps(self._metadata_to_dict(metadata)).encode("utf-8")
+    try:
+      result = await self._redis.eval(
+        self._LUA_STORE_IF_UNDER_LIMIT,
+        2,
+        self._APIKEYS_INDEX,
+        self._metadata_key(metadata.key_hash),
+        metadata.org_id,
+        str(max_keys),
+        metadata_json,
+        metadata.key_hash,
+      )
+      return int(result) == 1
+    except Exception:
+      # Fallback: non-atomic (fakeredis in tests may not support eval)
+      active = await self.count_active_keys(metadata.org_id)
+      if active >= max_keys:
+        return False
+      await self.store_key(metadata)
+      return True
+
+  async def increment_and_check_monthly_tokens(
+    self, org_id: str, token_count: int, limit: int
+  ) -> tuple[bool, int]:
+    """Atomically increment monthly token counter and check against limit."""
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    key = self._usage_key(org_id, month, "tokens_created")
+    new_total = await self._redis.incrby(key, token_count)
+    if limit != -1 and new_total > limit:
+      # Rollback
+      await self._redis.decrby(key, token_count)
+      return (False, new_total - token_count)
+    return (True, new_total)

@@ -19,28 +19,36 @@ Endpoints:
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.application.flush_request import FlushRequestUseCase
 from app.application.rehydrate_text import RehydrateTextUseCase
 from app.application.rotate_dek import RotateDekUseCase
 from app.application.tokenize_text import TokenizeTextUseCase
-from app.domain.entities import QuotaExceededError
+from app.domain.entities import (
+  MaxKeysExceededError,
+  MonthlyQuotaExceededError,
+  PlanNotFoundError,
+  QuotaExceededError,
+)
+from app.domain.plans import get_plan, list_plans
 from app.infrastructure.api.auth import require_admin_key, require_api_key
-from app.infrastructure.api.middleware import generate_request_id
 from app.infrastructure.api.schemas import (
+  ChangePlanRequest,
   ComponentStatus,
   CreateKeyRequest,
   CreateKeyResponse,
-  ErrorResponse,
   FlushRequest,
   FlushResponse,
   HealthComponents,
   HealthResponse,
+  OrgPlanResponse,
+  PlanResponse,
   RehydrateRequest,
   RehydrateResponse,
   RotateDekRequest,
@@ -52,6 +60,19 @@ from app.infrastructure.api.schemas import (
 from app.infrastructure.telemetry import get_logger, log_error, log_operation
 
 _logger = get_logger("routes")
+
+_UUID_REGEX = re.compile(
+  r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+  re.IGNORECASE,
+)
+
+
+def _validate_path_uuid(value: str, param_name: str) -> str:
+  """Raise HTTP 422 if *value* is not a well-formed UUID string."""
+  if not _UUID_REGEX.match(value):
+    raise HTTPException(status_code=422, detail=f"{param_name} must be a valid UUID")
+  return value
+
 
 router = APIRouter()
 
@@ -113,6 +134,19 @@ async def tokenize(
       )
     except asyncio.TimeoutError:
       raise HTTPException(status_code=408, detail="Text processing timeout")
+    except MonthlyQuotaExceededError as exc:
+      metrics.record_monthly_quota_exceeded(exc.plan_id)
+      _logger.warning(
+        "Monthly token quota exceeded",
+        extra={"_ps_operation": "tokenize", "org_id": org_id},
+      )
+      raise HTTPException(
+        status_code=429,
+        detail="Monthly token quota exceeded for your plan",
+        headers={
+          "Retry-After": "86400",
+        },
+      ) from exc
     except QuotaExceededError as exc:
       _logger.warning(
         "Org token quota exceeded",
@@ -168,9 +202,7 @@ async def tokenize(
     detection_ms=total_detection_ms,
   )
 
-  await container.api_key_port.record_usage(
-    auth["org_id"], "tokenize", token_count=len(all_token_infos)
-  )
+  await container.api_key_port.record_usage(auth["org_id"], "tokenize")
 
   return TokenizeResponse(
     tokenized_texts=all_tokenized,
@@ -384,14 +416,29 @@ async def create_key(
   The raw key is returned once in the response and is not stored anywhere.
   If the key is lost, it must be revoked and a new one created.
 
+  When the org has reached the maximum keys allowed by their plan, returns 409.
+
   Requires X-Admin-Key header.
   """
-  result = await container.create_api_key_use_case.execute(
-    org_id=body.organization_id,
-    plan=body.plan,
-    rate_limit=body.rate_limit_per_minute,
-    environment=body.environment,
-  )
+  try:
+    result = await container.create_api_key_use_case.execute(
+      org_id=body.organization_id,
+      environment=body.environment,
+    )
+  except MaxKeysExceededError as exc:
+    container.metrics.record_max_keys_exceeded(exc.plan_id)
+    _logger.warning(
+      "Max keys exceeded for org",
+      extra={"_ps_operation": "create_key", "org_id": body.organization_id},
+    )
+    raise HTTPException(
+      status_code=409,
+      detail=(
+        f"Organization has reached the maximum number of API keys "
+        f"({exc.max_keys}) for plan '{exc.plan_id}'. "
+        "Revoke an existing key or upgrade your plan."
+      ),
+    ) from exc
   log_operation(
     _logger,
     operation="create_key",
@@ -444,6 +491,8 @@ async def list_keys(
 
   Requires X-Admin-Key header.
   """
+  if org_id is not None:
+    _validate_path_uuid(org_id, "org_id")
   keys = await container.api_key_port.list_keys(org_id=org_id)
   return [
     {
@@ -470,23 +519,221 @@ async def get_usage(
   container=Depends(_get_container),
 ) -> dict:
   """
-  Return aggregated per-org usage counters for a given month.
+  Return aggregated per-org usage counters for a given month, enriched with
+  plan information (limit, remaining tokens, percent used).
 
   month query parameter format: YYYY-MM (e.g. '2026-03').
   Defaults to the current calendar month (UTC).
 
   Requires X-Admin-Key header.
   """
+  _validate_path_uuid(org_id, "org_id")
   resolved_month = month or datetime.now(timezone.utc).strftime("%Y-%m")
   usage = await container.api_key_port.get_usage(org_id, resolved_month)
+
+  resolved_plan_id = await container.org_plan_port.get_org_plan_id(org_id)
+  plan_id = resolved_plan_id or "free"
+
+  plan = get_plan(plan_id) or get_plan("free")
+
+  monthly_limit = plan.monthly_token_limit if plan else -1
+  used = usage.total_tokens_created
+
+  if monthly_limit == -1:
+    remaining = None
+    percent_used = 0.0
+  else:
+    remaining = max(0, monthly_limit - used)
+    percent_used = round((used / monthly_limit) * 100, 2) if monthly_limit > 0 else 0.0
+
   return {
     "org_id": usage.org_id,
     "month": usage.month,
     "tokenize_calls": usage.tokenize_calls,
     "rehydrate_calls": usage.rehydrate_calls,
     "flush_calls": usage.flush_calls,
-    "total_tokens_created": usage.total_tokens_created,
+    "total_tokens_created": used,
+    "plan_id": plan_id,
+    "plan_name": plan.name if plan else "Free",
+    "monthly_token_limit": monthly_limit,
+    "remaining_tokens": remaining,
+    "percent_used": percent_used,
   }
+
+
+# ── Plan catalog endpoints (public, no auth) ─────────────────────────────────
+
+
+@router.get(
+  "/api/v1/plans",
+  response_model=list[PlanResponse],
+  summary="List all available plans",
+)
+async def list_available_plans() -> list[PlanResponse]:
+  """Return all plans in the catalog. No authentication required."""
+  return [
+    PlanResponse(
+      id=p.id,
+      name=p.name,
+      rate_limit_per_minute=p.rate_limit_per_minute,
+      monthly_token_limit=p.monthly_token_limit,
+      max_keys=p.max_keys,
+      price_cents=p.price_cents,
+    )
+    for p in list_plans()
+  ]
+
+
+@router.get(
+  "/api/v1/plans/{plan_id}",
+  response_model=PlanResponse,
+  summary="Get a single plan by ID",
+)
+async def get_single_plan(plan_id: str) -> PlanResponse:
+  """
+  Return the plan with the given plan_id.
+
+  Returns 404 if the plan does not exist.
+  No authentication required.
+  """
+  plan = get_plan(plan_id)
+  if plan is None:
+    raise HTTPException(status_code=404, detail=f"Plan '{plan_id}' not found")
+  return PlanResponse(
+    id=plan.id,
+    name=plan.name,
+    rate_limit_per_minute=plan.rate_limit_per_minute,
+    monthly_token_limit=plan.monthly_token_limit,
+    max_keys=plan.max_keys,
+    price_cents=plan.price_cents,
+  )
+
+
+# ── Org plan management endpoints (admin auth) ────────────────────────────────
+
+
+@router.get(
+  "/api/v1/org/{org_id}/plan",
+  response_model=OrgPlanResponse,
+  summary="Get the current plan, usage, and key counts for an org",
+  dependencies=[Depends(require_admin_key)],
+)
+async def get_org_plan(
+  org_id: str,
+  container=Depends(_get_container),
+) -> OrgPlanResponse:
+  """
+  Return the org's current plan, its monthly token usage, and active key count.
+
+  Requires X-Admin-Key header.
+  """
+  _validate_path_uuid(org_id, "org_id")
+  resolved_plan_id = await container.org_plan_port.get_org_plan_id(org_id)
+  plan_id = resolved_plan_id or "free"
+
+  plan = get_plan(plan_id) or get_plan("free")
+
+  current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+  usage = await container.api_key_port.get_usage(org_id, current_month)
+
+  all_keys = await container.api_key_port.list_keys(org_id)
+  active_keys = sum(1 for k in all_keys if k.active)
+
+  return OrgPlanResponse(
+    plan=PlanResponse(
+      id=plan.id,
+      name=plan.name,
+      rate_limit_per_minute=plan.rate_limit_per_minute,
+      monthly_token_limit=plan.monthly_token_limit,
+      max_keys=plan.max_keys,
+      price_cents=plan.price_cents,
+    ),
+    usage={
+      "month": usage.month,
+      "tokenize_calls": usage.tokenize_calls,
+      "rehydrate_calls": usage.rehydrate_calls,
+      "flush_calls": usage.flush_calls,
+      "total_tokens_created": usage.total_tokens_created,
+    },
+    active_keys=active_keys,
+    max_keys=plan.max_keys,
+  )
+
+
+@router.post(
+  "/api/v1/org/{org_id}/plan",
+  response_model=OrgPlanResponse,
+  summary="Assign a plan to an organization",
+  dependencies=[Depends(require_admin_key)],
+)
+async def set_org_plan(
+  org_id: str,
+  body: ChangePlanRequest,
+  container=Depends(_get_container),
+) -> OrgPlanResponse:
+  """
+  Assign plan_id to the organization.
+
+  Validates that the plan exists and that the org's current active key count
+  does not exceed the new plan's max_keys. Returns 409 if keys must be revoked
+  before downgrading, 404 if the plan_id is unknown.
+
+  Requires X-Admin-Key header.
+  """
+  _validate_path_uuid(org_id, "org_id")
+  target_plan = get_plan(body.plan_id)
+  if target_plan is None:
+    raise HTTPException(status_code=404, detail=f"Plan '{body.plan_id}' not found")
+
+  all_keys = await container.api_key_port.list_keys(org_id)
+  active_keys = sum(1 for k in all_keys if k.active)
+  if active_keys > target_plan.max_keys:
+    raise HTTPException(
+      status_code=409,
+      detail=(
+        f"Cannot downgrade to plan '{body.plan_id}': org has {active_keys} active "
+        f"keys but the plan allows {target_plan.max_keys}. "
+        "Revoke excess keys before changing plan."
+      ),
+    )
+
+  old_plan_id = await container.org_plan_port.get_org_plan_id(org_id) or "free"
+  await container.org_plan_port.set_org_plan(
+    org_id=org_id,
+    plan_id=body.plan_id,
+    stripe_customer_id=body.stripe_customer_id,
+  )
+  container.metrics.record_plan_change(from_plan=old_plan_id, to_plan=body.plan_id)
+  log_operation(
+    _logger,
+    operation="set_org_plan",
+    org_id=org_id,
+    duration_ms=0,
+    plan=body.plan_id,
+  )
+
+  current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+  usage = await container.api_key_port.get_usage(org_id, current_month)
+
+  return OrgPlanResponse(
+    plan=PlanResponse(
+      id=target_plan.id,
+      name=target_plan.name,
+      rate_limit_per_minute=target_plan.rate_limit_per_minute,
+      monthly_token_limit=target_plan.monthly_token_limit,
+      max_keys=target_plan.max_keys,
+      price_cents=target_plan.price_cents,
+    ),
+    usage={
+      "month": usage.month,
+      "tokenize_calls": usage.tokenize_calls,
+      "rehydrate_calls": usage.rehydrate_calls,
+      "flush_calls": usage.flush_calls,
+      "total_tokens_created": usage.total_tokens_created,
+    },
+    active_keys=active_keys,
+    max_keys=target_plan.max_keys,
+  )
 
 
 @router.get(
@@ -561,3 +808,22 @@ async def metrics_snapshot(container=Depends(_get_container)) -> JSONResponse:
   Intended for use by internal monitoring dashboards and health scripts.
   """
   return JSONResponse(content=container.metrics.snapshot())
+
+
+@router.get(
+  "/metrics/prometheus",
+  summary="Prometheus text exposition of all metrics (admin-only)",
+  dependencies=[Depends(require_admin_key)],
+)
+async def metrics_prometheus(container=Depends(_get_container)) -> Response:
+  """
+  Return all Privacy Shield metrics in Prometheus text exposition format 0.0.4.
+
+  Suitable for scraping by a Prometheus server or compatible collector.
+  No PII, org_id, key_id, or IP addresses are ever included.
+  Requires X-Admin-Key header.
+  """
+  return Response(
+    content=container.metrics.to_prometheus(),
+    media_type="text/plain; version=0.0.4; charset=utf-8",
+  )

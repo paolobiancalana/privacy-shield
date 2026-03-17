@@ -37,6 +37,7 @@ export type {
   FlushRequest,
   FlushResponse,
   HealthResponse,
+  MetricsCallback,
   PiiType,
   PrivacyShieldConfig,
   PrivacyShieldError,

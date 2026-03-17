@@ -19,13 +19,58 @@ class QuotaExceededError(Exception):
   """
 
   def __init__(self, org_id: str, current: int, limit: int) -> None:
-    super().__init__(
-      f"Organization {org_id!r} has reached the token quota "
-      f"({current} >= {limit}). Flush active requests before tokenizing more."
-    )
+    super().__init__("Organization token quota exceeded")
     self.org_id = org_id
     self.current = current
     self.limit = limit
+
+
+class MonthlyQuotaExceededError(Exception):
+  """
+  Raised when an organization has consumed its entire monthly token allocation.
+
+  Distinct from QuotaExceededError (which governs concurrent vault tokens).
+  This error governs calendar-month billing limits enforced per plan.
+  HTTP callers should receive 429 with Retry-After pointing to next month.
+  """
+
+  def __init__(self, org_id: str, used: int, limit: int, plan_id: str) -> None:
+    super().__init__("Monthly token quota exceeded")
+    self.org_id = org_id
+    self.used = used
+    self.limit = limit
+    self.plan_id = plan_id
+
+
+class MaxKeysExceededError(Exception):
+  """
+  Raised when an organization attempts to create more API keys than their
+  plan allows.
+
+  HTTP callers should receive 409 Conflict — the org must revoke an existing
+  key or upgrade their plan before creating a new one.
+  """
+
+  def __init__(
+    self, org_id: str, current_keys: int, max_keys: int, plan_id: str
+  ) -> None:
+    super().__init__("Maximum API keys exceeded for plan")
+    self.org_id = org_id
+    self.current_keys = current_keys
+    self.max_keys = max_keys
+    self.plan_id = plan_id
+
+
+class PlanNotFoundError(Exception):
+  """
+  Raised when a plan_id does not exist in the PLANS catalog.
+
+  HTTP callers should receive 404. The plan_id is safe to surface.
+  """
+
+  def __init__(self, plan_id: str) -> None:
+    super().__init__(f"Plan {plan_id!r} does not exist.")
+    self.plan_id = plan_id
 
 
 @dataclass(frozen=True)

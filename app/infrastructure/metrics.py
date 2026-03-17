@@ -41,6 +41,7 @@ class _Counter:
 
 
 _HISTOGRAM_MAX_SAMPLES = 10_000
+_PROM_BUCKETS = [10.0, 25.0, 50.0, 100.0, 250.0, 500.0, 1000.0]
 
 
 class _Histogram:
@@ -111,6 +112,20 @@ def _label_key(labels: dict[str, str] | None) -> str:
   return ",".join(f"{k}={v}" for k, v in sorted(labels.items()))
 
 
+def _label_key_to_prometheus(label_key: str) -> str:
+  """
+  Convert an internal label key (e.g. 'source=regex') to Prometheus
+  label string format (e.g. 'source="regex"').
+
+  Handles multiple labels separated by commas.
+  """
+  parts = []
+  for pair in label_key.split(","):
+    k, _, v = pair.partition("=")
+    parts.append(f'{k}="{v}"')
+  return ",".join(parts)
+
+
 def _summarise(samples: list[float]) -> dict[str, float]:
   """Compute descriptive statistics over a list of floats."""
   if not samples:
@@ -166,6 +181,9 @@ class PrivacyShieldMetrics:
       "ps_dek_rotations_total",
       "ps_health_checks_total",
       "ps_auth_failures_total",
+      "ps_monthly_quota_exceeded_total",
+      "ps_plan_changes_total",
+      "ps_max_keys_exceeded_total",
     ):
       self._get_or_create_counter(name)
 
@@ -249,6 +267,108 @@ class PrivacyShieldMetrics:
         status: 'healthy', 'degraded', or 'unhealthy'.
     """
     self.increment("ps_health_checks_total", {"status": status})
+
+  def to_prometheus(self) -> str:
+    """
+    Emit all metrics in Prometheus text exposition format 0.0.4.
+
+    Bucket boundaries for histograms: 10, 25, 50, 100, 250, 500, 1000, +Inf ms.
+
+    GDPR safety: NEVER includes org_id, key_id, IP addresses, or PII.
+    """
+    lines: list[str] = []
+
+    # ── Counters ──────────────────────────────────────────────────
+    for name, counter in self._counters.items():
+      snap = counter.snapshot()
+      lines.append(f"# TYPE {name} counter")
+      by_label: dict[str, int] = snap["by_label"]
+      if not by_label or (len(by_label) == 1 and "all" in by_label):
+        lines.append(f"{name} {by_label.get('all', 0)}")
+      else:
+        for label_key, count in by_label.items():
+          if label_key == "all":
+            lines.append(f"{name} {count}")
+          else:
+            label_str = _label_key_to_prometheus(label_key)
+            lines.append(f"{name}{{{label_str}}} {count}")
+
+    # ── Histograms ─────────────────────────────────────────────────
+    for name, hist in self._histograms.items():
+      lines.append(f"# TYPE {name} histogram")
+      with hist._lock:
+        all_samples = list(hist._samples)
+        by_label = {k: list(v) for k, v in hist._by_label.items()}
+      if not by_label:
+        by_label = {"all": all_samples}
+      for label_key, samples in by_label.items():
+        label_str = ""
+        if label_key != "all":
+          label_str = _label_key_to_prometheus(label_key)
+
+        total_count = len(samples)
+        total_sum = sum(samples)
+
+        for bound in _PROM_BUCKETS:
+          bucket_count = sum(1 for s in samples if s <= bound)
+          le_label = f'le="{int(bound) if bound == int(bound) else bound}"'
+          if label_str:
+            lines.append(
+              f"{name}_bucket{{{label_str},{le_label}}} {bucket_count}"
+            )
+          else:
+            lines.append(f"{name}_bucket{{{le_label}}} {bucket_count}")
+
+        inf_label = 'le="+Inf"'
+        if label_str:
+          lines.append(
+            f"{name}_bucket{{{label_str},{inf_label}}} {total_count}"
+          )
+        else:
+          lines.append(f"{name}_bucket{{{inf_label}}} {total_count}")
+
+        if label_str:
+          lines.append(f"{name}_count{{{label_str}}} {total_count}")
+          lines.append(
+            f"{name}_sum{{{label_str}}} {round(total_sum, 3)}"
+          )
+        else:
+          lines.append(f"{name}_count {total_count}")
+          lines.append(f"{name}_sum {round(total_sum, 3)}")
+
+    # ── Uptime gauge ───────────────────────────────────────────────
+    lines.append("# TYPE ps_uptime_seconds gauge")
+    lines.append(f"ps_uptime_seconds {round(time.time() - self._started_at, 1)}")
+
+    return "\n".join(lines) + "\n"
+
+  def record_monthly_quota_exceeded(self, plan_id: str) -> None:
+    """
+    Record a monthly token quota breach.
+
+    Args:
+        plan_id: The plan that was exhausted (e.g. 'starter', 'business').
+    """
+    self.increment("ps_monthly_quota_exceeded_total", {"plan_id": plan_id})
+
+  def record_plan_change(self, from_plan: str, to_plan: str) -> None:
+    """
+    Record an org plan assignment change.
+
+    Args:
+        from_plan: Previous plan_id.
+        to_plan: New plan_id.
+    """
+    self.increment("ps_plan_changes_total", {"from_plan": from_plan, "to_plan": to_plan})
+
+  def record_max_keys_exceeded(self, plan_id: str) -> None:
+    """
+    Record a rejected key creation due to plan max_keys enforcement.
+
+    Args:
+        plan_id: The plan whose key limit was hit.
+    """
+    self.increment("ps_max_keys_exceeded_total", {"plan_id": plan_id})
 
   def _get_or_create_counter(self, name: str) -> _Counter:
     with self._lock:

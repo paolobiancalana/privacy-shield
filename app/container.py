@@ -27,13 +27,15 @@ from app.application.tokenize_text import TokenizeTextUseCase
 from app.domain.ports.api_key_port import ApiKeyPort
 from app.domain.ports.crypto_port import CryptoPort
 from app.domain.ports.detection_port import DetectionPort
+from app.domain.ports.org_plan_port import OrgPlanPort
 from app.domain.ports.vault_port import VaultPort
 from app.infrastructure.adapters.aes_crypto import AesCryptoAdapter
+from app.infrastructure.adapters.composite_detection import CompositeDetectionAdapter
+from app.infrastructure.adapters.ner_detection import NerDetectionAdapter
 from app.infrastructure.adapters.redis_api_key import RedisApiKeyAdapter
+from app.infrastructure.adapters.redis_org_plan import RedisOrgPlanAdapter
 from app.infrastructure.adapters.redis_vault import RedisVaultAdapter
 from app.infrastructure.adapters.regex_detection import RegexDetectionAdapter
-from app.infrastructure.adapters.ner_detection import NerDetectionAdapter
-from app.infrastructure.adapters.composite_detection import CompositeDetectionAdapter
 from app.infrastructure.config import Settings
 from app.infrastructure.metrics import PrivacyShieldMetrics
 from app.infrastructure.telemetry import get_logger
@@ -62,6 +64,7 @@ class Container:
     self._flush_use_case: FlushRequestUseCase | None = None
     self._rotate_dek_use_case: RotateDekUseCase | None = None
     self._api_key_adapter: RedisApiKeyAdapter | None = None
+    self._org_plan_adapter: RedisOrgPlanAdapter | None = None
     self._create_api_key_use_case: CreateApiKeyUseCase | None = None
     self._revoke_api_key_use_case: RevokeApiKeyUseCase | None = None
     self._metrics: PrivacyShieldMetrics = PrivacyShieldMetrics()
@@ -143,6 +146,8 @@ class Container:
         crypto=self.crypto_port,
         token_ttl_seconds=self.config.token_ttl_seconds,
         max_tokens_per_org=self.config.max_tokens_per_org,
+        api_key_port=self.api_key_port,
+        org_plan_port=self.org_plan_port,
       )
     return self._tokenize_use_case
 
@@ -178,10 +183,18 @@ class Container:
     return self._api_key_adapter
 
   @property
+  def org_plan_port(self) -> OrgPlanPort:
+    """Lazy singleton: Redis-backed org→plan adapter."""
+    if self._org_plan_adapter is None:
+      self._org_plan_adapter = RedisOrgPlanAdapter(self.redis_client)
+    return self._org_plan_adapter
+
+  @property
   def create_api_key_use_case(self) -> CreateApiKeyUseCase:
     if self._create_api_key_use_case is None:
       self._create_api_key_use_case = CreateApiKeyUseCase(
-        api_key_port=self.api_key_port
+        api_key_port=self.api_key_port,
+        org_plan_port=self.org_plan_port,
       )
     return self._create_api_key_use_case
 

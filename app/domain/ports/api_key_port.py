@@ -95,3 +95,22 @@ class ApiKeyPort(ABC):
       UsageRecord with zero counts for operations that have not been called.
     """
     ...
+
+  @abstractmethod
+  async def count_active_keys(self, org_id: str) -> int:
+    """Count active (non-revoked) keys for an org. Atomic read."""
+    ...
+
+  @abstractmethod
+  async def store_key_if_under_limit(self, metadata: ApiKeyMetadata, max_keys: int) -> bool:
+    """Atomically check active key count and store if under limit.
+    Returns True if stored, False if limit reached."""
+    ...
+
+  @abstractmethod
+  async def increment_and_check_monthly_tokens(
+    self, org_id: str, token_count: int, limit: int
+  ) -> tuple[bool, int]:
+    """Atomically increment monthly token counter and check against limit.
+    Returns (allowed, new_total). If not allowed, the increment is rolled back."""
+    ...

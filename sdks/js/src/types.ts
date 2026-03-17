@@ -104,6 +104,21 @@ export interface HealthResponse {
   version: string;
 }
 
+/** Callback interface for client-side telemetry. */
+export interface MetricsCallback {
+  /** Called after each HTTP request completes (success or failure). */
+  onRequest(metric: {
+    /** Operation name: 'tokenize', 'rehydrate', 'flush', or 'health'. */
+    operation: string;
+    /** Request duration in milliseconds. */
+    durationMs: number;
+    /** HTTP status code (0 if network error). */
+    statusCode: number;
+    /** Error message if request failed. */
+    error?: string;
+  }): void;
+}
+
 /** SDK configuration. */
 export interface PrivacyShieldConfig {
   /** API key (e.g. "ps_live_xxx"). */
@@ -122,6 +137,8 @@ export interface PrivacyShieldConfig {
   clientKey?: string | Buffer;
   /** CA certificate for server verification (PEM string or Buffer). Node.js only. */
   caCert?: string | Buffer;
+  /** Optional metrics callback for client-side telemetry. */
+  metrics?: MetricsCallback;
 }
 
 /** Error from the PS API. */

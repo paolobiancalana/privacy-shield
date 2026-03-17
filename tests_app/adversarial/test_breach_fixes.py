@@ -87,6 +87,11 @@ async def client(test_settings: Settings) -> AsyncClient:
     _ = container.crypto_port
     app.state.container = container
 
+    # Pre-assign enterprise plan to test orgs so rate-limit and quota tests
+    # can create many keys without hitting the free plan's max_keys=2 limit.
+    await container.org_plan_port.set_org_plan(ORG_A, "enterprise")
+    await container.org_plan_port.set_org_plan(ORG_B, "enterprise")
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac

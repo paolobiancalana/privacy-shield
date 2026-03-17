@@ -29,6 +29,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.container import Container
+from app.infrastructure.api.billing_stub import billing_router
 from app.infrastructure.api.middleware import (
   global_exception_handler,
   validation_exception_handler,
@@ -178,6 +179,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
       )
 
   app.include_router(router)
+  app.include_router(billing_router)
 
   app.add_exception_handler(Exception, global_exception_handler)
   app.add_exception_handler(RequestValidationError, validation_exception_handler)

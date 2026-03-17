@@ -10,6 +10,7 @@ Design rules:
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import sys
@@ -88,6 +89,21 @@ SAFE_LOG_FIELDS: frozenset[str] = frozenset({
     "text_count",
     "environment",
     "key_hash",
+    # Audit / GDPR Article 30 fields
+    "audit",
+    "pii_type_counts",
+    "org_hash",
+    # Plan system fields
+    "plan_id",
+    "from_plan",
+    "to_plan",
+    "monthly_limit",
+    "monthly_used",
+    "active_keys",
+    "max_keys",
+    "price_cents",
+    "remaining_tokens",
+    "percent_used",
 })
 
 
@@ -148,4 +164,43 @@ def log_error(
         f"operation={operation} org={org_id} error={error_code}: {message}",
         extra=extra,
         exc_info=exc,
+    )
+
+
+_audit_logger = get_logger("audit")
+
+
+def log_processing_activity(
+    operation: str,
+    org_id: str,
+    pii_types_detected: list[str],
+    token_count: int,
+    duration_ms: float,
+) -> None:
+    """
+    GDPR Article 30 — Record of Processing Activities.
+
+    Writes a structured audit log entry for every data processing operation.
+    The org_id is hashed (SHA-256, first 12 hex chars) to pseudonymise the record.
+
+    NEVER writes: actual PII, token values, request body, IP addresses.
+    """
+    org_hash = hashlib.sha256(org_id.encode()).hexdigest()[:12]
+
+    # Aggregate PII type counts for Article 30 record — audit logs are
+    # access-controlled, unlike Prometheus metrics which omit type distribution.
+    type_counts: dict[str, int] = {}
+    for t in pii_types_detected:
+        type_counts[t] = type_counts.get(t, 0) + 1
+
+    _audit_logger.info(
+        f"processing_activity operation={operation}",
+        extra={
+            "_ps_audit": True,
+            "_ps_operation": operation,
+            "_ps_org_hash": org_hash,
+            "_ps_pii_type_counts": type_counts,
+            "_ps_token_count": token_count,
+            "_ps_duration_ms": round(duration_ms, 3),
+        },
     )

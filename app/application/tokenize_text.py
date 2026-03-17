@@ -3,14 +3,15 @@
 TokenizeTextUseCase — orchestrate PII detection, token assignment, and vault storage.
 
 This is the central use case for Fase 1. It implements the full tokenization pipeline:
-  1. Resolve per-org DEK (creates one if absent)
-  2. Detect PII spans via DetectionPort
-  3. Fuse overlapping spans via span_fusion domain service
-  4. For each span: compute HMAC hash, handle collisions, format token
-  5. Store encrypted PII in vault (per-token TTL)
-  6. Register token hashes under request_id for later flush
-  7. Replace spans in text right-to-left (preserves earlier offsets)
-  8. Return TokenizeResult with all metadata
+  1. (Optional) Check monthly token quota via ApiKeyPort + OrgPlanPort
+  2. Resolve per-org DEK (creates one if absent)
+  3. Detect PII spans via DetectionPort
+  4. Fuse overlapping spans via span_fusion domain service
+  5. For each span: compute HMAC hash, handle collisions, format token
+  6. Store encrypted PII in vault (per-token TTL)
+  7. Register token hashes under request_id for later flush
+  8. Replace spans in text right-to-left (preserves earlier offsets)
+  9. Return TokenizeResult with all metadata
 
 Collision handling:
   Each HMAC[:4] is checked against 'existing_tokens' (caller-supplied carry-over)
@@ -18,15 +19,30 @@ Collision handling:
   maps to a DIFFERENT plaintext, we try hash+"_2", "_3", etc., until a free slot
   is found. If the same hash already maps to the SAME plaintext (idempotent),
   we reuse the existing token directly without re-encrypting.
+
+Monthly quota enforcement (optional):
+  When both ApiKeyPort and OrgPlanPort are provided, the use case checks the org's
+  consumed tokens for the current calendar month before proceeding. Enterprise plans
+  (monthly_token_limit == -1) are always allowed through.
 """
 from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
-from app.domain.entities import PiiSpan, QuotaExceededError, TokenEntry, TokenizeResult
+from app.domain.entities import (
+    MonthlyQuotaExceededError,
+    PiiSpan,
+    QuotaExceededError,
+    TokenEntry,
+    TokenizeResult,
+)
+from app.domain.plans import PLANS, get_plan
+from app.domain.ports.api_key_port import ApiKeyPort
 from app.domain.ports.crypto_port import CryptoPort
 from app.domain.ports.detection_port import DetectionPort
+from app.domain.ports.org_plan_port import OrgPlanPort
 from app.domain.ports.vault_port import VaultPort
 from app.domain.services.span_fusion import fuse_spans
 from app.domain.services.token_format import (
@@ -35,6 +51,8 @@ from app.domain.services.token_format import (
     format_token,
     parse_token,
 )
+
+_DEFAULT_PLAN_ID = "free"
 
 # Maximum collision attempts before raising — 10 is the hard limit aligned with
 # build_collision_hash(). More than 10 collisions signals a systemic problem.
@@ -96,12 +114,16 @@ class TokenizeTextUseCase:
         crypto: CryptoPort,
         token_ttl_seconds: int = 60,
         max_tokens_per_org: int = 10_000,
+        api_key_port: ApiKeyPort | None = None,
+        org_plan_port: OrgPlanPort | None = None,
     ) -> None:
         self._detection = detection
         self._vault = vault
         self._crypto = crypto
         self._token_ttl = token_ttl_seconds
         self._max_tokens_per_org = max_tokens_per_org
+        self._api_key_port = api_key_port
+        self._org_plan_port = org_plan_port
 
     async def execute(
         self,
@@ -114,8 +136,12 @@ class TokenizeTextUseCase:
         Tokenize 'text' for the given organization.
 
         Raises QuotaExceededError if the org has already reached the per-org
-        token quota. This prevents a single tenant from exhausting Redis memory
-        and evicting other orgs' tokens via LRU pressure.
+        token quota (concurrent vault tokens — prevents Redis memory exhaustion).
+
+        When both ApiKeyPort and OrgPlanPort are provided, also raises
+        MonthlyQuotaExceededError if the org has consumed its full monthly
+        token allocation for the current calendar month. Enterprise plans
+        (monthly_token_limit == -1) bypass this check entirely.
 
         Args:
             text:            Raw text to process.
@@ -129,11 +155,12 @@ class TokenizeTextUseCase:
 
         Raises:
             QuotaExceededError: If the org has exceeded max_tokens_per_org.
+            MonthlyQuotaExceededError: If the org has exhausted its monthly limit.
         """
         t0 = time.perf_counter()
 
-        # Quota check — must happen before any vault writes to prevent Redis
-        # memory exhaustion via unbounded single-org token accumulation.
+        # Concurrent vault quota check — must happen before any vault writes to
+        # prevent Redis memory exhaustion via unbounded single-org token accumulation.
         current_count = await self._vault.count_org_tokens(org_id)
         if current_count >= self._max_tokens_per_org:
             raise QuotaExceededError(org_id, current_count, self._max_tokens_per_org)
@@ -141,6 +168,12 @@ class TokenizeTextUseCase:
         dek = await self._crypto.get_or_create_dek(org_id)
         detection_result = await self._detection.detect(text)
         fused_spans = fuse_spans(detection_result.spans)
+
+        # Monthly quota check — post-detection, pre-vault-write.
+        # Atomically increments the counter so concurrent requests cannot
+        # exceed the limit (fixes TOCTOU race in the old _check_monthly_quota).
+        if self._api_key_port is not None and self._org_plan_port is not None and fused_spans:
+            await self._check_and_reserve_monthly_quota(org_id, len(fused_spans))
 
         tracker = _CollisionTracker()
         if existing_tokens:
@@ -197,6 +230,38 @@ class TokenizeTextUseCase:
             tokenization_ms=tokenization_ms,
             span_count=len(fused_spans),
         )
+
+
+    async def _check_and_reserve_monthly_quota(self, org_id: str, token_count: int) -> None:
+        """
+        Atomically increment the monthly token counter and check against the plan limit.
+
+        Uses increment_and_check_monthly_tokens for TOCTOU-safe enforcement.
+        If the increment would exceed the limit, it is rolled back atomically.
+        Skipped (no-op) when monthly_token_limit == -1 (enterprise unlimited).
+
+        Raises:
+            MonthlyQuotaExceededError: If the increment would exceed the plan limit.
+        """
+        assert self._api_key_port is not None
+        assert self._org_plan_port is not None
+
+        plan_id = await self._org_plan_port.get_org_plan_id(org_id) or _DEFAULT_PLAN_ID
+        plan = get_plan(plan_id) or PLANS[_DEFAULT_PLAN_ID]
+
+        if plan.monthly_token_limit == -1:
+            return
+
+        allowed, new_total = await self._api_key_port.increment_and_check_monthly_tokens(
+            org_id, token_count, plan.monthly_token_limit,
+        )
+        if not allowed:
+            raise MonthlyQuotaExceededError(
+                org_id=org_id,
+                used=new_total,
+                limit=plan.monthly_token_limit,
+                plan_id=plan.id,
+            )
 
 
 def _replace_spans(

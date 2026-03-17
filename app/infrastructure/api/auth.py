@@ -32,6 +32,27 @@ _logger = get_logger("auth")
 _ADMIN_RATE_LIMIT = 10
 _ADMIN_RATE_TTL_SECONDS = 120
 
+_LUA_ADMIN_RATE_LIMIT = """
+local key = KEYS[1]
+local limit = tonumber(ARGV[1])
+local ttl = tonumber(ARGV[2])
+local count = redis.call('INCR', key)
+if count == 1 then
+    redis.call('EXPIRE', key, ttl)
+end
+return count
+"""
+
+
+def _extract_client_ip(request: Request) -> str:
+  """Extract client IP, preferring X-Forwarded-For rightmost entry."""
+  xff = request.headers.get("x-forwarded-for")
+  if xff:
+    ips = [ip.strip() for ip in xff.split(",")]
+    if ips:
+      return ips[-1]
+  return request.client.host if request.client else "unknown"
+
 
 async def require_api_key(
   request: Request,
@@ -139,11 +160,17 @@ async def require_admin_key(
   """
   container = request.app.state.container
 
-  client_ip = request.client.host if request.client else "unknown"
+  client_ip = _extract_client_ip(request)
   rate_key = f"ps:admin_rate:{client_ip}:{int(time.time()) // 60}"
-  count: int = await container.redis_client.incr(rate_key)
-  if count == 1:
-    await container.redis_client.expire(rate_key, _ADMIN_RATE_TTL_SECONDS)
+  try:
+    count = int(await container.redis_client.eval(
+      _LUA_ADMIN_RATE_LIMIT, 1, rate_key,
+      str(_ADMIN_RATE_LIMIT), str(_ADMIN_RATE_TTL_SECONDS),
+    ))
+  except Exception:
+    count = await container.redis_client.incr(rate_key)
+    if count == 1:
+      await container.redis_client.expire(rate_key, _ADMIN_RATE_TTL_SECONDS)
   if count > _ADMIN_RATE_LIMIT:
     _logger.warning(
       "Admin rate limit exceeded",

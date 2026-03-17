@@ -27,7 +27,8 @@ class TokenizeRequest(BaseModel):
   request_id: str = Field(..., description="UUID identifying this request (for flush).")
   existing_tokens: dict[str, str] = Field(
     default_factory=dict,
-    description="Carry-over map: pii_value → token from previous turns.",
+    max_length=1_000,
+    description="Carry-over map: pii_value → token from previous turns (max 1000 entries).",
   )
 
   @field_validator("organization_id")
@@ -39,6 +40,14 @@ class TokenizeRequest(BaseModel):
   @classmethod
   def validate_request_id(cls, v: str) -> str:
     return _validate_uuid(v, "request_id")
+
+  @field_validator("existing_tokens")
+  @classmethod
+  def validate_existing_tokens_sizes(cls, v: dict[str, str]) -> dict[str, str]:
+    for key, val in v.items():
+      if len(key) > 512 or len(val) > 128:
+        raise ValueError("existing_tokens entries must be <= 512 chars key, 128 chars value")
+    return v
 
   @field_validator("texts")
   @classmethod
@@ -194,18 +203,19 @@ class ErrorResponse(BaseModel):
 
 
 class CreateKeyRequest(BaseModel):
-  """Request body for POST /api/v1/keys."""
+  """
+  Request body for POST /api/v1/keys.
+
+  The plan and rate_limit_per_minute fields are accepted for backward compatibility
+  but are silently ignored when OrgPlanPort is wired in the container — the org's
+  assigned plan drives both values automatically.
+  """
+
+  model_config = {"extra": "ignore"}
 
   organization_id: str = Field(
     ...,
     description="UUID of the organization this key belongs to.",
-  )
-  plan: str = Field("standard", description="Subscription plan name.")
-  rate_limit_per_minute: int = Field(
-    100,
-    ge=1,
-    le=10_000,
-    description="Maximum API calls per minute for this key.",
   )
   environment: str = Field(
     "live",
@@ -228,3 +238,35 @@ class CreateKeyResponse(BaseModel):
   )
   key_id: str = Field(..., description="Stable identifier for the key (for revocation).")
   organization_id: str
+
+
+class ChangePlanRequest(BaseModel):
+  """Request body for POST /api/v1/org/{org_id}/plan."""
+
+  plan_id: str = Field(..., description="Target plan ID (must exist in the plan catalog).")
+  stripe_customer_id: str | None = Field(
+    None,
+    max_length=64,
+    pattern=r"^cus_[A-Za-z0-9]{14,24}$",
+    description="Stripe customer ID (format: cus_xxx).",
+  )
+
+
+class PlanResponse(BaseModel):
+  """Serialized representation of a Plan for API consumers."""
+
+  id: str
+  name: str
+  rate_limit_per_minute: int
+  monthly_token_limit: int
+  max_keys: int
+  price_cents: int
+
+
+class OrgPlanResponse(BaseModel):
+  """Current plan, usage, and key-count summary for an organization."""
+
+  plan: PlanResponse
+  usage: dict
+  active_keys: int
+  max_keys: int

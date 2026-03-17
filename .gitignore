@@ -34,3 +34,4 @@ platform/web/node_modules/
 platform/web/.next/
 platform/web/.env.local
 platform/web/.env*.local
+.local/
