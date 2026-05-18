@@ -29,9 +29,36 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Maven Settings and Secrets
+settings.xml
+.m2/
+*.asc
+*.gpg
+secring.*
+
+# Java SDK build artifacts
+sdks/java/target/
+
 # Platform (Next.js)
 platform/web/node_modules/
 platform/web/.next/
 platform/web/.env.local
 platform/web/.env*.local
 .local/
+
+# Debug / throwaway scripts (often contain secrets)
+platform/web/debug_*.js
+platform/web/check_*.js
+platform/web/inspect_*.js
+platform/web/insert_*.js
+platform/web/list_*.js
+platform/web/test_*.js
+
+# SDK build artifacts (never commit dist/ — publish from CI)
+sdks/js/dist/
+# Debug / throwaway SDK scripts (but allow verify-build.mjs, used by CI)
+sdks/js/scripts/*
+!sdks/js/scripts/verify-build.mjs
+
+# MCP configuration (may contain project refs)
+.mcp.json
