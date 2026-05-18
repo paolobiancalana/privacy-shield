@@ -33,14 +33,22 @@
  */
 
 export { PrivacyShield, PrivacyShieldApiError } from './client.js';
+export { PrivacyShieldAdmin } from './admin.js';
+export { hashKey } from './hash.js';
 export type {
   FlushRequest,
   FlushResponse,
   HealthResponse,
+  KeyInfo,
+  KeyResult,
   MetricsCallback,
+  OrgPlanInfo,
   PiiType,
+  PlanInfo,
+  PrivacyShieldAdminConfig,
   PrivacyShieldConfig,
   PrivacyShieldError,
+  ProvisionResult,
   RehydrateRequest,
   RehydrateResponse,
   TokenEntry,

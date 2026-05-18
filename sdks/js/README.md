@@ -71,6 +71,74 @@ Delete all vault entries for a request.
 ### `ps.health()` → `HealthResponse`
 Check service health.
 
+## Admin SDK (server-only)
+
+The admin SDK manages organization provisioning, plan changes, and API key
+lifecycle. It uses the `X-Admin-Key` header and **must never be used in
+browser environments** — the constructor throws when `window` is defined.
+
+```typescript
+import { PrivacyShieldAdmin, hashKey } from '@privacyshield/sdk';
+
+const admin = new PrivacyShieldAdmin({
+  adminKey: process.env.PS_ADMIN_KEY!,  // server-side env only
+});
+
+// Provision a new tenant (idempotent)
+const { key, keyId, created } = await admin.provision(
+  '550e8400-e29b-41d4-a716-446655440000',
+  'starter',
+);
+
+if (created) {
+  // SECURITY: `key` contains the raw API key — shown once only.
+  // Persist it immediately to your secrets manager (AWS Secrets Manager,
+  // Vault, GCP Secret Manager, etc). Never log it to stdout, stderr,
+  // observability backends, or commit it to source control.
+  await secretsManager.store(`ps_key/${keyId}`, key);
+} else {
+  console.log(`Already provisioned, existing keyId=${keyId}`);
+}
+```
+
+### Revoking a key
+
+Always hash the raw key first. Passing the raw key to `revokeKey()` directly
+would expose it via HTTP access logs, CDN caches, and browser history —
+URLs are not a safe transport for credential material.
+
+```typescript
+import { hashKey } from '@privacyshield/sdk';
+
+const rawKey = await secretsManager.fetch(`ps_key/${keyId}`);
+await admin.revokeKey(await hashKey(rawKey));
+```
+
+`revokeKey()` validates that its argument matches the expected hex SHA-256
+shape and throws synchronously if a raw key is passed by mistake.
+
+### ⚠️ Raw key handling — critical
+
+| Field | Returned by | Contains | Safe to log? |
+|---|---|---|---|
+| `ProvisionResult.key` | `admin.provision()` (first call only) | raw `ps_live_*` | **NO** |
+| `KeyResult.key` | `admin.createKey()` | raw `ps_live_*` | **NO** |
+| `ProvisionResult.keyId` / `KeyResult.keyId` | both | stable opaque ID | yes |
+| `KeyInfo` (from `admin.listKeys()`) | listing | metadata only | yes |
+
+Store raw key material in a secrets manager **immediately** after issuance.
+Once you lose it, it cannot be recovered — you must rotate via
+`admin.createKey()` + `admin.revokeKey(hashKey(oldKey))`.
+
+### Constructor validation
+
+Both `PrivacyShield` and `PrivacyShieldAdmin` constructors validate inputs
+at instantiation time:
+
+- `baseUrl` must be a valid URL with `https:` protocol
+- `timeoutMs` must be a positive finite number (rejects 0, negatives, Infinity)
+- `PrivacyShieldAdmin` additionally throws if `window` is defined (browser)
+
 ## PII Types Detected
 
 | Code | Type | Detection |

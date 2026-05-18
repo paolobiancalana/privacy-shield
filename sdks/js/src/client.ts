@@ -20,6 +20,12 @@ import type {
   TokenizeRequest,
   TokenizeResponse,
 } from './types.js';
+import {
+  MAX_RESPONSE_SIZE,
+  safeParseJson,
+  validateBaseUrl,
+  validateTimeoutMs,
+} from './validators.js';
 
 const DEFAULT_BASE_URL = 'https://api.privacyshield.pro';
 const DEFAULT_TIMEOUT_MS = 5_000;
@@ -71,8 +77,8 @@ export class PrivacyShield {
     }
 
     this.apiKey = config.apiKey;
-    this.baseUrl = (config.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, '');
-    this.timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    this.baseUrl = validateBaseUrl(config.baseUrl, DEFAULT_BASE_URL);
+    this.timeoutMs = validateTimeoutMs(config.timeoutMs, DEFAULT_TIMEOUT_MS);
     this.clientCert = config.clientCert;
     this.clientKey = config.clientKey;
     this.caCert = config.caCert;
@@ -241,7 +247,7 @@ export class PrivacyShield {
         await this.handleError(response);
       }
 
-      return (await response.json()) as Record<string, unknown>;
+      return (await safeParseJson(response)) as Record<string, unknown>;
     } finally {
       clearTimeout(timer);
     }
@@ -268,7 +274,7 @@ export class PrivacyShield {
         await this.handleError(response);
       }
 
-      return (await response.json()) as Record<string, unknown>;
+      return (await safeParseJson(response)) as Record<string, unknown>;
     } finally {
       clearTimeout(timer);
     }
@@ -277,7 +283,7 @@ export class PrivacyShield {
   private async handleError(response: Response): Promise<never> {
     let body: PrivacyShieldError;
     try {
-      body = (await response.json()) as PrivacyShieldError;
+      body = (await safeParseJson(response)) as PrivacyShieldError;
     } catch {
       body = {
         error: `HTTP ${response.status}: ${response.statusText}`,
@@ -336,8 +342,19 @@ export class PrivacyShield {
         },
         (res) => {
           let data = '';
-          res.on('data', (chunk: string) => (data += chunk));
+          let aborted = false;
+          res.on('data', (chunk: string) => {
+            if (aborted) return;
+            data += chunk;
+            if (data.length > MAX_RESPONSE_SIZE) {
+              aborted = true;
+              clearTimeout(timer);
+              req.destroy(new Error(`Response body exceeds ${MAX_RESPONSE_SIZE} bytes`));
+              reject(new Error(`PrivacyShield: response body exceeds ${MAX_RESPONSE_SIZE} bytes`));
+            }
+          });
           res.on('end', () => {
+            if (aborted) return;
             clearTimeout(timer);
             if (res.statusCode && res.statusCode >= 400) {
               try {

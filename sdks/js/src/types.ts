@@ -147,3 +147,101 @@ export interface PrivacyShieldError {
   code: string;
   detail: string | null;
 }
+
+// ── Admin SDK types ─────────────────────────────────────────────────────────
+
+/** Admin SDK configuration. */
+export interface PrivacyShieldAdminConfig {
+  /** Admin API key (X-Admin-Key). */
+  adminKey: string;
+  /** Base URL of the PS runtime API. Default: "https://api.privacyshield.pro" */
+  baseUrl?: string;
+  /** Request timeout in ms. Default: 5000. */
+  timeoutMs?: number;
+}
+
+/**
+ * Result of a provision() call.
+ *
+ * When created=true, key contains the raw API key (shown once only).
+ * When created=false, the org was already provisioned; key is an empty string.
+ */
+export interface ProvisionResult {
+  /** Plan ID assigned to the organization. */
+  plan: string;
+  /**
+   * Raw API key — present only when created=true.
+   * Empty string on subsequent calls; the key cannot be recovered after first issuance.
+   */
+  key: string;
+  /** Stable key identifier (use for revocation). */
+  keyId: string;
+  /** True if a new key was created; false if the org was already provisioned. */
+  created: boolean;
+  /** Organization ID that was provisioned. */
+  organizationId: string;
+  /** Key environment: "live" or "test". */
+  environment: string;
+}
+
+/** Plan details returned by admin plan operations. */
+export interface PlanInfo {
+  /** Plan ID (e.g. "free", "starter", "pro"). */
+  id: string;
+  /** Human-readable plan name. */
+  name: string;
+  /** Maximum API calls per minute. */
+  rateLimitPerMinute: number;
+  /** Monthly token creation limit (-1 = unlimited). */
+  monthlyTokenLimit: number;
+  /** Maximum number of API keys per org. */
+  maxKeys: number;
+  /** Plan price in cents. */
+  priceCents: number;
+}
+
+/** Result of a createKey() call. */
+export interface KeyResult {
+  /** Raw API key — shown once only; store it securely. */
+  key: string;
+  /** Stable key identifier (use for revocation). */
+  keyId: string;
+  /** Organization ID that owns this key. */
+  organizationId: string;
+}
+
+/** Metadata for a single API key (no raw key material). */
+export interface KeyInfo {
+  /** Stable key identifier. */
+  keyId: string;
+  /** Organization ID that owns this key. */
+  orgId: string;
+  /** Plan ID at time of key creation. */
+  plan: string;
+  /** Maximum API calls per minute. */
+  rateLimitPerMinute: number;
+  /** Whether the key is currently active (not revoked). */
+  active: boolean;
+  /** Key environment: "live" or "test". */
+  environment: string;
+  /** ISO 8601 creation timestamp. */
+  createdAt: string;
+}
+
+/** Combined plan, usage, and key summary for an organization. */
+export interface OrgPlanInfo {
+  /** Full plan details for the org's current plan. */
+  plan: PlanInfo;
+  /** Monthly usage counters for the current calendar month. */
+  usage: {
+    month: string;
+    tokenizeCalls: number;
+    rehydrateCalls: number;
+    flushCalls: number;
+    totalTokensCreated: number;
+  };
+  /** Number of currently active (non-revoked) keys. */
+  activeKeys: number;
+  /** Maximum keys allowed by the current plan. */
+  maxKeys: number;
+}

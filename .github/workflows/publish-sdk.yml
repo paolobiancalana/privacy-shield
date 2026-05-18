@@ -1,0 +1,77 @@
+name: Publish SDK to npm
+
+# Triggered by pushing a tag matching sdk-v*, e.g. `git tag sdk-v1.1.2 && git push --tags`.
+# Builds, verifies, and publishes @privacyshield/sdk to the public npm registry
+# with provenance attestations (signed by GitHub Actions).
+#
+# Setup required (one-time) — see sdks/js/PUBLISHING.md.
+
+on:
+  push:
+    tags:
+      - 'sdk-v*'
+
+# Prevent concurrent publishes of the same tag (idempotency safety).
+concurrency:
+  group: publish-sdk-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read         # checkout
+      id-token: write        # required for npm provenance attestation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        working-directory: sdks/js
+        run: npm ci
+
+      - name: Build
+        working-directory: sdks/js
+        run: npm run build
+
+      - name: Verify build artifacts
+        working-directory: sdks/js
+        run: node scripts/verify-build.mjs
+
+      - name: Inspect tarball (dry-run)
+        working-directory: sdks/js
+        run: npm pack --dry-run
+
+      - name: Publish to npm with provenance
+        working-directory: sdks/js
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
+
+      - name: Verify published version
+        # Bind tag name into env so the shell receives a quoted string,
+        # not a literal interpolation by the workflow templater.
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Tag format: sdk-vX.Y.Z → strip prefix
+          VERSION="${REF_NAME#sdk-v}"
+          echo "Verifying @privacyshield/sdk@${VERSION}"
+          # Wait up to 60s for registry propagation
+          for i in $(seq 1 12); do
+            if curl -sf "https://registry.npmjs.org/@privacyshield/sdk/${VERSION}" > /dev/null; then
+              echo "Published version visible on registry"
+              break
+            fi
+            echo "Waiting for registry propagation... (attempt $i/12)"
+            sleep 5
+          done
+          curl -s "https://registry.npmjs.org/@privacyshield/sdk/${VERSION}" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print('Name:', d['name']); print('Version:', d['version']); print('Tarball:', d['dist']['tarball']); print('Integrity:', d['dist'].get('integrity', 'n/a'))"
