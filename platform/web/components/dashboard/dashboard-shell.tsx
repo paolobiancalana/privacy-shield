@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -121,6 +122,12 @@ export function DashboardShell({
   const router = useRouter();
   const [selectedOrgId, setSelectedOrgId] = useState(initialOrgId);
   const [isPending, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
+
+  // Sync mount status to avoid hydration mismatch with Base UI IDs
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const selectedOrg = orgs.find((o) => o.id === selectedOrgId) ?? orgs[0];
   const pageTitle = PAGE_TITLES[pathname] ?? "Dashboard";
@@ -139,6 +146,11 @@ export function DashboardShell({
       await supabase.auth.signOut();
       router.push("/");
     });
+  }
+
+  // To avoid hydration mismatch (IDs in DropdownMenu/BaseUI)
+  if (!mounted) {
+    return <div className="flex min-h-screen bg-background opacity-0" />;
   }
 
   return (
@@ -165,35 +177,38 @@ export function DashboardShell({
           {orgs.length > 1 ? (
             <DropdownMenu>
               <DropdownMenuTrigger
-                render={
+                render={(triggerProps) => (
                   <Button
+                    {...triggerProps}
                     variant="ghost"
                     size="sm"
                     className="w-full justify-between px-2 text-sm font-normal"
-                  />
-                }
-              >
-                <span className="flex items-center gap-2 truncate">
-                  <BuildingIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{selectedOrg?.name ?? "Seleziona org"}</span>
-                </span>
-                <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52">
-                <DropdownMenuLabel>Organizzazioni</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {orgs.map((org) => (
-                  <DropdownMenuItem
-                    key={org.id}
-                    onClick={() => handleSelectOrg(org.id)}
-                    className="flex items-center justify-between"
                   >
-                    <span className="truncate">{org.name}</span>
-                    {org.id === selectedOrgId && (
-                      <CheckIcon className="size-3.5 text-primary" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
+                    <span className="flex items-center gap-2 truncate">
+                      <BuildingIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{selectedOrg?.name ?? "Seleziona org"}</span>
+                    </span>
+                    <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                  </Button>
+                )}
+              />
+              <DropdownMenuContent align="start" className="w-52">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Organizzazioni</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {orgs.map((org) => (
+                    <DropdownMenuItem
+                      key={org.id}
+                      onClick={() => handleSelectOrg(org.id)}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="truncate">{org.name}</span>
+                      {org.id === selectedOrgId && (
+                        <CheckIcon className="size-3.5 text-primary" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -241,41 +256,44 @@ export function DashboardShell({
         <div className="border-t border-border px-3 py-3">
           <DropdownMenu>
             <DropdownMenuTrigger
-              render={
+              render={(triggerProps) => (
                 <Button
+                  {...triggerProps}
                   variant="ghost"
                   size="sm"
                   className="w-full justify-start gap-2 px-2 text-sm font-normal"
-                />
-              }
-            >
-              <Avatar size="sm">
-                <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                  {getInitials(user.email)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="truncate text-muted-foreground">
-                {user.email}
-              </span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-52" side="top">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground truncate">
-                    Connesso come
+                >
+                  <Avatar size="sm">
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                      {getInitials(user.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="truncate text-muted-foreground">
+                    {user.email}
                   </span>
-                  <span className="text-sm truncate">{user.email}</span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={handleSignOut}
-                disabled={isPending}
-              >
-                <LogOutIcon className="size-4" />
-                {isPending ? "Disconnessione…" : "Esci"}
-              </DropdownMenuItem>
+                </Button>
+              )}
+            />
+            <DropdownMenuContent align="start" className="w-52" side="top">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-muted-foreground truncate">
+                      Connesso come
+                    </span>
+                    <span className="text-sm truncate">{user.email}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={handleSignOut}
+                  disabled={isPending}
+                >
+                  <LogOutIcon className="size-4" />
+                  {isPending ? "Disconnessione…" : "Esci"}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

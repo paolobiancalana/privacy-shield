@@ -203,7 +203,7 @@ export default function LandingPage() {
               Come funziona
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Quattro semplici passaggi dal documento grezzo all'output sanificato e reidratabile.
+              Quattro semplici passaggi dal documento grezzo all&apos;output sanificato e reidratabile.
             </p>
           </div>
 

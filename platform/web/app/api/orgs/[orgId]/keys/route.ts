@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHash, randomBytes } from "crypto";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type PlanId } from "@/lib/stripe/plans";
 
 interface RouteContext {
@@ -56,7 +56,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
   const { data: keys, error: keysError } = await supabase
     .from("ps_api_keys")
     .select(
-      "id, key_prefix, label, environment, active, created_by, created_at, revoked_at"
+      "id, key_prefix, label, environment, active, created_by, created_at, revoked_at, expires_at"
     )
     .eq("org_id", orgId)
     .order("created_at", { ascending: false });
@@ -139,7 +139,11 @@ export async function POST(request: Request, { params }: RouteContext) {
     );
   }
 
-  const { label, environment } = body as Record<string, unknown>;
+  const { label, environment, expires_at } = body as {
+    label: string;
+    environment: string;
+    expires_at?: string;
+  };
 
   if (!label || typeof label !== "string" || label.trim().length === 0) {
     return NextResponse.json(
@@ -185,8 +189,10 @@ export async function POST(request: Request, { params }: RouteContext) {
     );
   }
 
+  const supabaseAdmin = await createAdminClient();
+
   // Check active key count against plan limit
-  const { count: activeKeyCount, error: countError } = await supabase
+  const { count: activeKeyCount, error: countError } = await supabaseAdmin
     .from("ps_api_keys")
     .select("id", { count: "exact", head: true })
     .eq("org_id", orgId)
@@ -227,7 +233,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   // Key prefix: first 8 chars + "..." + last 4 chars of the raw key
   const keyPrefix = `${rawKey.slice(0, 8)}...${rawKey.slice(-4)}`;
 
-  const { data: keyRecord, error: insertError } = await supabase
+  const { data: keyRecord, error: insertError } = await supabaseAdmin
     .from("ps_api_keys")
     .insert({
       org_id: orgId,
@@ -237,13 +243,13 @@ export async function POST(request: Request, { params }: RouteContext) {
       key_prefix: keyPrefix,
       active: true,
       created_by: user.id,
+      expires_at: expires_at || null,
     })
-    .select("id, key_prefix, label, environment, created_at")
+    .select("id, key_prefix, label, environment, created_at, expires_at")
     .single();
 
   if (insertError) {
     console.error("Failed to insert API key", {
-      userId: user.id,
       orgId,
       error: insertError.message,
     });

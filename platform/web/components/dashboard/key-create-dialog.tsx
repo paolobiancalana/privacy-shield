@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { PlusIcon, CopyIcon, CheckIcon, AlertTriangleIcon } from "lucide-react";
-import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { PlusIcon } from "lucide-react";
+import { toast } from "sonner";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,39 +16,54 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { ApiKey } from "./key-card";
+import { format, addDays } from "date-fns";
+import type { ApiKey } from "./api-key-table";
 
 interface KeyCreateDialogProps {
   orgId: string;
-  onCreated: (key: ApiKey) => void;
+  onCreated: (key: ApiKey, rawValue: string) => void;
 }
 
 type Environment = "live" | "test";
 
-// Maps UI environment names to what the API/DB accepts.
-// The DB check constraint allows: "live" | "test"
-const ENV_TO_API: Record<Environment, string> = {
-  live: "live",
-  test: "test",
-};
+const EXPIRATION_OPTIONS = [
+  { label: "7 days", value: "7d", days: 7 },
+  { label: "30 days", value: "30d", days: 30 },
+  { label: "60 days", value: "60d", days: 60 },
+  { label: "90 days", value: "90d", days: 90 },
+  { label: "Custom", value: "custom", days: 0 },
+  { label: "Never", value: "never", days: -1 },
+] as const;
 
 export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [environment, setEnvironment] = useState<Environment>("test");
+  const [expiration, setExpiration] = useState<string>("30d");
+  const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
   const [loading, setLoading] = useState(false);
-
-  // Shown only after successful creation — full key value displayed once
-  const [createdKey, setCreatedKey] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   function resetForm() {
     setLabel("");
     setEnvironment("test");
-    setCreatedKey(null);
-    setCopied(false);
+    setExpiration("30d");
+    setCustomDate(undefined);
   }
 
   function handleOpenChange(next: boolean) {
@@ -59,24 +75,32 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
     e.preventDefault();
     setLoading(true);
 
+    let expiresAt: string | null = null;
+    if (expiration === "custom" && customDate) {
+      expiresAt = customDate.toISOString();
+    } else if (expiration !== "never") {
+      const option = EXPIRATION_OPTIONS.find((o) => o.value === expiration);
+      if (option && option.days > 0) {
+        expiresAt = addDays(new Date(), option.days).toISOString();
+      }
+    }
+
     try {
       const res = await fetch(`/api/orgs/${orgId}/keys`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           label: label.trim() || "Untitled key",
-          environment: ENV_TO_API[environment],
+          environment,
+          expires_at: expiresAt,
         }),
       });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(
-          (body as { error?: string })?.error ?? "Failed to create key"
-        );
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Failed to create key");
       }
 
-      // API returns: { key, key_id, key_prefix, label, environment, created_at }
       const data = (await res.json()) as {
         key: string;
         key_id: string;
@@ -84,23 +108,24 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
         label: string;
         environment: string;
         created_at: string;
+        expires_at: string | null;
       };
 
-      // Show the raw key once
-      setCreatedKey(data.key);
-
-      // Notify parent with a normalized ApiKey record
+      // Notify parent with both the record and the raw value for the one-time view
       onCreated({
         id: data.key_id,
         prefix: data.key_prefix,
         label: data.label,
-        environment: data.environment,
+        environment: data.environment as Environment,
         active: true,
         created_at: data.created_at,
         revoked_at: null,
-      });
+        expires_at: data.expires_at,
+      }, data.key);
 
-      toast.success("API key created");
+      toast.success("Chiave API creata correttamente");
+      setOpen(false);
+      resetForm();
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
@@ -110,147 +135,134 @@ export function KeyCreateDialog({ orgId, onCreated }: KeyCreateDialogProps) {
     }
   }
 
-  async function handleCopy() {
-    if (!createdKey) return;
-    await navigator.clipboard.writeText(createdKey);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button size="sm" />}>
-        <PlusIcon className="size-4" />
-        Crea chiave
+      <DialogTrigger
+        className={cn(
+          buttonVariants({ size: "sm" }),
+          "h-9 px-4 font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+        )}
+      >
+        <PlusIcon className="mr-2 size-4" />
+        Nuova chiave
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md">
-        {createdKey ? (
-          /* ---------------------------------------------------------------- */
-          /* Success state — show full key once                                */
-          /* ---------------------------------------------------------------- */
-          <>
-            <DialogHeader>
-              <DialogTitle>Chiave creata</DialogTitle>
-              <DialogDescription>
-                Copia la chiave API ora. Non verrà più mostrata.
+      <DialogContent className="sm:max-w-[440px] bg-[#0c0c11] border-border/40 shadow-2xl p-0 overflow-hidden">
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <div className="p-6 pb-4">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-xl font-bold tracking-tight">Crezione Nuova Chiave</DialogTitle>
+              <DialogDescription className="text-muted-foreground/60">
+                Genera una nuova chiave di accesso per i tuoi progetti.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex flex-col gap-3 py-2">
-              {/* Warning banner */}
-              <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-400">
-                <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" />
-                <span>
-                  Questa chiave viene mostrata una sola volta. Salvala in un
-                  luogo sicuro come un gestore di segreti o una variabile d&apos;ambiente.
-                </span>
-              </div>
+            <Alert variant="warning" className="mb-6 rounded-xl border-amber-500/10 bg-amber-500/[0.03] py-3">
+              <AlertDescription className="text-[11px] leading-relaxed text-amber-500/80">
+                Questa chiave deve essere conservata in un luogo sicuro. Non potrai più visualizzarla una volta chiusa questa finestra.
+              </AlertDescription>
+            </Alert>
 
-              {/* Key display + copy */}
-              <div className="flex items-center gap-2">
-                <code className="flex-1 overflow-x-auto rounded-lg border border-border bg-muted px-3 py-2 font-mono text-xs text-foreground">
-                  {createdKey}
-                </code>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={handleCopy}
-                  aria-label="Copy API key"
-                >
-                  {copied ? (
-                    <CheckIcon className="size-4 text-emerald-400" />
-                  ) : (
-                    <CopyIcon className="size-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <DialogFooter showCloseButton={false}>
-              <DialogClose render={<Button variant="outline" size="sm" />}>
-                Fatto
-              </DialogClose>
-            </DialogFooter>
-          </>
-        ) : (
-          /* ---------------------------------------------------------------- */
-          /* Creation form                                                      */
-          /* ---------------------------------------------------------------- */
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle>Crea chiave API</DialogTitle>
-              <DialogDescription>
-                Dai un nome alla chiave e scegli l&apos;ambiente.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="flex flex-col gap-4 py-4">
-              {/* Label */}
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="key-label">Nome</Label>
+            <div className="flex flex-col gap-5">
+              {/* Name */}
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="key-label" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50 pl-0.5">Nome</Label>
                 <Input
                   id="key-label"
-                  placeholder="es. Server di produzione"
+                  placeholder="es. My API Key"
+                  className="h-11 border-border/40 bg-white/[0.02] hover:bg-white/[0.04] transition-all focus:ring-1 focus:ring-primary/20 rounded-xl"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   maxLength={80}
                   required
+                  autoFocus
                 />
               </div>
 
-              {/* Environment */}
-              <div className="flex flex-col gap-1.5">
-                <Label>Ambiente</Label>
+              {/* Expires In */}
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50 pl-0.5">Scadenza</Label>
                 <div className="flex gap-2">
+                  <Select value={expiration} onValueChange={(val) => val && setExpiration(val)}>
+                    <SelectTrigger className="flex-1 h-11 border-border/40 bg-white/[0.02] rounded-xl hover:bg-white/[0.04]">
+                      <SelectValue placeholder="Seleziona scadenza" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXPIRATION_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {expiration === "custom" && (
+                    <Popover>
+                      <PopoverTrigger
+                        className={cn(
+                          buttonVariants({ variant: "outline" }),
+                          "h-11 border-border/40 bg-white/[0.02] rounded-xl px-3 hover:bg-white/[0.04] cursor-pointer"
+                        )}
+                      >
+                        {customDate ? format(customDate, "dd/MM/yyyy") : "Scegli data"}
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 border-border/40 shadow-2xl" align="end">
+                        <Calendar 
+                          selected={customDate} 
+                          onSelect={setCustomDate} 
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
+              </div>
+
+              {/* Environment */}
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50 pl-0.5">Ambiente</Label>
+                <div className="flex gap-2.5">
                   {(["test", "live"] as const).map((env) => (
                     <button
                       key={env}
                       type="button"
                       onClick={() => setEnvironment(env)}
                       className={[
-                        "flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                        "flex flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                         environment === env
-                          ? env === "live"
-                            ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-400"
-                            : "border-amber-500/60 bg-amber-500/10 text-amber-400"
-                          : "border-border text-muted-foreground hover:bg-muted",
+                          ? "border-primary/40 bg-primary/5 text-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.05)] ring-1 ring-primary/20"
+                          : "border-border/40 bg-transparent text-muted-foreground/60 hover:bg-white/[0.03] hover:border-border/60 hover:text-muted-foreground",
                       ].join(" ")}
                     >
-                      <span
-                        className="size-1.5 rounded-full inline-block shrink-0"
-                        style={{
-                          backgroundColor:
-                            environment === env
-                              ? env === "live"
-                                ? "#22c55e"
-                                : "#f59e0b"
-                              : "#555",
-                        }}
-                      />
+                      <div className={cn(
+                        "size-1.5 rounded-full",
+                        environment === env ? "bg-primary" : "bg-muted-foreground/40"
+                      )} />
                       {env === "live" ? "Live" : "Test"}
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {environment === "live"
-                    ? "Le chiavi Live elaborano dati reali. Usa solo in produzione."
-                    : "Le chiavi Test sono sicure per sviluppo e CI."}
-                </p>
               </div>
             </div>
+          </div>
 
-            <DialogFooter showCloseButton={false}>
-              <DialogClose render={<Button type="button" variant="outline" size="sm" />}>
-                Annulla
-              </DialogClose>
-              <Button type="submit" size="sm" disabled={loading}>
-                {loading ? "Creazione…" : "Crea chiave"}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
+          <DialogFooter className="bg-white/[0.02] border-t border-border/40 p-5 mt-4 sm:flex-row gap-3">
+            <DialogClose
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "flex-1 sm:flex-none h-11 border-transparent hover:bg-white/5 font-medium cursor-pointer"
+              )}
+            >
+              Annulla
+            </DialogClose>
+            <Button 
+                type="submit" 
+                className="flex-1 sm:flex-none h-11 px-8 font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity rounded-xl" 
+                disabled={loading}
+            >
+              {loading ? "Generazione..." : "Generate token"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -9,9 +9,9 @@ export const PLAN_LIMITS: Record<
   }
 > = {
   free: {
-    maxKeys: 20,
-    rateLimit: 200,
-    monthlyTokens: 500_000,
+    maxKeys: 2,
+    rateLimit: 30,
+    monthlyTokens: 10_000,
   },
   developer: {
     maxKeys: 5,
