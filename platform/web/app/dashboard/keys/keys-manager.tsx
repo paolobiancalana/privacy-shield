@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { ApiKeyTable, type ApiKey } from "@/components/dashboard/api-key-table";
 import { KeyCreateDialog } from "@/components/dashboard/key-create-dialog";
+import { CreateOrgDialog } from "@/components/dashboard/create-org-dialog";
 import { ApiTokenSuccess } from "@/components/dashboard/api-token-success";
 import {
   AlertDialog,
@@ -109,8 +110,10 @@ export function KeysManager({ initialKeys, orgId }: KeysManagerProps) {
               <ExternalLinkIcon className="size-3 opacity-0 group-hover:opacity-40 -ml-0.5" />
             </a>
           </div>
-          {orgId && (
+          {orgId ? (
             <KeyCreateDialog orgId={orgId} onCreated={handleCreated} />
+          ) : (
+            <CreateOrgDialog />
           )}
         </div>
       </div>
@@ -165,13 +168,19 @@ export function KeysManager({ initialKeys, orgId }: KeysManagerProps) {
             <div className="rounded-full bg-primary/5 p-4 mb-4">
               <KeyRoundIcon className="size-8 text-primary/40" />
             </div>
-            <h3 className="text-base font-semibold text-foreground">Nessuna chiave configurata</h3>
+            <h3 className="text-base font-semibold text-foreground">
+              {orgId ? "Nessuna chiave configurata" : "Nessuna organizzazione trovata"}
+            </h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-xs mx-auto">
-              Per iniziare a proteggere i tuoi progetti, genera la tua prima chiave API.
+              {orgId
+                ? "Per iniziare a proteggere i tuoi progetti, genera la tua prima chiave API."
+                : "Crea una nuova organizzazione per iniziare a generare chiavi API e proteggere i dati."}
             </p>
             <div className="mt-6">
-              {orgId && (
+              {orgId ? (
                 <KeyCreateDialog orgId={orgId} onCreated={handleCreated} />
+              ) : (
+                <CreateOrgDialog />
               )}
             </div>
           </div>

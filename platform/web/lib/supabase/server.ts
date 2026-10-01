@@ -33,9 +33,19 @@ export async function createClient() {
  * administrative tasks after manual authorization checks.
  */
 export async function createAdminClient() {
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY;
+
+  if (!serviceKey) {
+    console.warn(
+      "[SupabaseAdmin] SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_KEY is not defined. Admin operations will fallback to anon key."
+    );
+  }
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    serviceKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {

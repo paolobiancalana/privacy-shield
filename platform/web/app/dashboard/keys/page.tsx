@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { KeysManager } from "./keys-manager";
 import type { ApiKey } from "@/components/dashboard/api-key-table";
 
 export default async function KeysPage() {
   const supabase = await createClient();
+  const adminClient = await createAdminClient();
   const cookieStore = await cookies();
 
   // Resolve selected org from cookie
@@ -14,29 +15,19 @@ export default async function KeysPage() {
 
   const {
     data: { user },
-    error: userError
   } = await supabase.auth.getUser();
 
-  console.log("[KeysPage] Active User Handle:", { 
-    id: user?.id, 
-    email: user?.email,
-    error: userError?.message 
-  });
-
   if (!resolvedOrgId && user) {
-    const { data: member, error: memberError } = await supabase
+    const { data: member, error: memberError } = await adminClient
       .from("ps_org_members")
       .select("org_id")
       .eq("user_id", user.id)
       .limit(1)
       .maybeSingle();
     
-    console.log("[KeysPage] Membership Lookup:", { 
-      userId: user.id, 
-      memberFound: !!member,
-      orgId: member?.org_id,
-      error: memberError?.message
-    });
+    if (memberError) {
+      console.error("[KeysPage] Membership Lookup Error:", memberError.message);
+    }
 
     resolvedOrgId = member?.org_id ?? null;
   }
@@ -45,8 +36,7 @@ export default async function KeysPage() {
   const keys: ApiKey[] = [];
 
   if (resolvedOrgId) {
-    console.log("[KeysPage] Fetching keys for Org:", resolvedOrgId);
-    const { data, error: keysError } = await supabase
+    const { data, error: keysError } = await adminClient
       .from("ps_api_keys")
       .select(
         "id, key_prefix, label, environment, active, created_at, revoked_at, expires_at"

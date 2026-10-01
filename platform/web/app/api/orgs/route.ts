@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/;
 
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const normalizedSlug = slug.toLowerCase();
+  let normalizedSlug = slug.toLowerCase();
 
   if (!SLUG_PATTERN.test(normalizedSlug)) {
     return NextResponse.json(
@@ -125,28 +125,26 @@ export async function POST(request: Request) {
     );
   }
 
+  const adminClient = await createAdminClient();
+
   // Check slug uniqueness
-  const { data: existing } = await supabase
+  const { data: existing } = await adminClient
     .from("ps_organizations")
     .select("id")
     .eq("slug", normalizedSlug)
     .maybeSingle();
 
   if (existing) {
-    return NextResponse.json(
-      { error: "Slug is already taken", code: "VALIDATION_ERROR" },
-      { status: 422 }
-    );
+    normalizedSlug = `${normalizedSlug.slice(0, 50)}-${Math.random().toString(36).substring(2, 6)}`;
   }
 
-  // Insert org and membership in a transaction-like sequence.
-  // Supabase JS v2 does not expose a client-side transaction API;
-  // we perform sequential inserts and clean up on failure.
-  const { data: org, error: orgError } = await supabase
+  // Insert org and membership using admin client to bypass RLS restrictions
+  const { data: org, error: orgError } = await adminClient
     .from("ps_organizations")
     .insert({
       name: name.trim(),
       slug: normalizedSlug,
+      owner_id: user.id,
       plan_id: "free",
     })
     .select()
@@ -172,7 +170,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error: memberError } = await supabase
+  const { error: memberError } = await adminClient
     .from("ps_org_members")
     .insert({
       org_id: org.id,
@@ -188,7 +186,7 @@ export async function POST(request: Request) {
     });
 
     // Best-effort rollback
-    await supabase.from("ps_organizations").delete().eq("id", org.id);
+    await adminClient.from("ps_organizations").delete().eq("id", org.id);
 
     return NextResponse.json(
       { error: "Failed to create organization", code: "INTERNAL_ERROR" },

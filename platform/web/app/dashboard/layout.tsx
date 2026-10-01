@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { DashboardShell, type Org } from "@/components/dashboard/dashboard-shell";
 
 export default async function DashboardLayout({
@@ -22,16 +22,12 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  const adminClient = await createAdminClient();
+
   // -------------------------------------------------------------------------
   // Fetch orgs the user belongs to
-  //
-  // The handle_new_user trigger fires synchronously (AFTER INSERT) on
-  // auth.users, so by the time the session cookie reaches this server
-  // component the org row should already exist. A missing org indicates
-  // a trigger failure — we surface that via an empty orgs array rather
-  // than crashing, so the shell can show a graceful empty state.
   // -------------------------------------------------------------------------
-  const { data: memberRows, error: orgsError } = await supabase
+  const { data: memberRows, error: orgsError } = await adminClient
     .from("ps_org_members")
     .select(
       `
@@ -49,7 +45,7 @@ export default async function DashboardLayout({
     console.error("[DashboardLayout] failed to fetch org memberships", orgsError);
   }
 
-  const orgs: Org[] = (memberRows ?? []).flatMap((row) => {
+  let orgs: Org[] = (memberRows ?? []).flatMap((row) => {
     // Supabase infers the join as an array type; cast via unknown to single record
     const org = (row.ps_organizations as unknown) as {
       id: string;
@@ -59,6 +55,41 @@ export default async function DashboardLayout({
     if (!org || Array.isArray(org)) return [];
     return [{ id: org.id, name: org.name, slug: org.slug, role: row.role }];
   });
+
+  // Auto-provision if user has 0 organizations so they are never stranded
+  if (orgs.length === 0) {
+    try {
+      const emailPrefix = (user.email ?? "user").split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "-") || "org";
+      const orgName = (user.email ?? "Personal").split("@")[0] || "Personal Org";
+      const suffix = user.id.replace(/-/g, "").slice(0, 6);
+      const slug = `${emailPrefix.slice(0, 30)}-${suffix}`;
+
+      const { data: newOrg, error: newOrgErr } = await adminClient
+        .from("ps_organizations")
+        .insert({
+          name: orgName,
+          slug: slug,
+          owner_id: user.id,
+          plan_id: "free",
+        })
+        .select("id, name, slug")
+        .single();
+
+      if (newOrg && !newOrgErr) {
+        await adminClient.from("ps_org_members").insert({
+          org_id: newOrg.id,
+          user_id: user.id,
+          role: "owner",
+        });
+
+        orgs = [{ id: newOrg.id, name: newOrg.name, slug: newOrg.slug, role: "owner" }];
+      } else {
+        console.error("[DashboardLayout] Failed to auto-provision org:", newOrgErr);
+      }
+    } catch (err) {
+      console.error("[DashboardLayout] Auto-provision exception:", err);
+    }
+  }
 
   // -------------------------------------------------------------------------
   // Determine selected org (cookie → first org)

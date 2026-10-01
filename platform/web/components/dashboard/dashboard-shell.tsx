@@ -13,10 +13,12 @@ import {
   CheckIcon,
   LogOutIcon,
   BuildingIcon,
+  PlusIcon,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { CreateOrgDialog } from "./create-org-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -174,7 +176,7 @@ export function DashboardShell({
 
         {/* Org switcher */}
         <div className="border-b border-border px-3 py-3">
-          {orgs.length > 1 ? (
+          {orgs.length > 0 ? (
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={(triggerProps) => (
@@ -182,7 +184,7 @@ export function DashboardShell({
                     {...triggerProps}
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-between px-2 text-sm font-normal"
+                    className="w-full justify-between px-2 text-sm font-normal hover:bg-sidebar-accent cursor-pointer"
                   >
                     <span className="flex items-center gap-2 truncate">
                       <BuildingIcon className="size-3.5 shrink-0 text-muted-foreground" />
@@ -192,7 +194,7 @@ export function DashboardShell({
                   </Button>
                 )}
               />
-              <DropdownMenuContent align="start" className="w-52">
+              <DropdownMenuContent align="start" className="w-56">
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Organizzazioni</DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -200,7 +202,7 @@ export function DashboardShell({
                     <DropdownMenuItem
                       key={org.id}
                       onClick={() => handleSelectOrg(org.id)}
-                      className="flex items-center justify-between"
+                      className="flex items-center justify-between cursor-pointer"
                     >
                       <span className="truncate">{org.name}</span>
                       {org.id === selectedOrgId && (
@@ -208,16 +210,33 @@ export function DashboardShell({
                       )}
                     </DropdownMenuItem>
                   ))}
+                  <DropdownMenuSeparator />
+                  <div className="p-1">
+                    <CreateOrgDialog
+                      trigger={
+                        <div className="flex items-center gap-2 w-full px-2 py-1.5 text-xs text-primary font-medium hover:bg-primary/10 rounded-md transition-colors cursor-pointer">
+                          <PlusIcon className="size-3.5" />
+                          <span>Nuova organizzazione</span>
+                        </div>
+                      }
+                    />
+                  </div>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm">
-              <BuildingIcon className="size-3.5 shrink-0 text-muted-foreground" />
-              <span className="truncate text-foreground">
-                {selectedOrg?.name ?? "Nessuna org"}
-              </span>
-            </div>
+            <CreateOrgDialog
+              trigger={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-2 text-xs border-dashed cursor-pointer"
+                >
+                  <PlusIcon className="size-3.5" />
+                  <span>Crea organizzazione</span>
+                </Button>
+              }
+            />
           )}
         </div>
 

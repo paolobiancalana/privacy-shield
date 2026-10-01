@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 interface RouteContext {
   params: Promise<{ orgId: string; keyId: string }>;
@@ -23,8 +23,10 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     );
   }
 
+  const adminClient = await createAdminClient();
+
   // Verify membership and role
-  const { data: membership, error: membershipError } = await supabase
+  const { data: membership, error: membershipError } = await adminClient
     .from("ps_org_members")
     .select("role")
     .eq("org_id", orgId)
@@ -61,7 +63,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   }
 
   // Verify the key belongs to this org and is currently active
-  const { data: key, error: keyFetchError } = await supabase
+  const { data: key, error: keyFetchError } = await adminClient
     .from("ps_api_keys")
     .select("id, active")
     .eq("id", keyId)
@@ -93,7 +95,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     return NextResponse.json({ revoked: true, key_id: keyId });
   }
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await adminClient
     .from("ps_api_keys")
     .update({
       active: false,

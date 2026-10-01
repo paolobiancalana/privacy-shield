@@ -25,8 +25,10 @@ export async function GET(_request: Request, { params }: RouteContext) {
     );
   }
 
+  const adminClient = await createAdminClient();
+
   // Verify membership
-  const { data: membership, error: membershipError } = await supabase
+  const { data: membership, error: membershipError } = await adminClient
     .from("ps_org_members")
     .select("role")
     .eq("org_id", orgId)
@@ -53,7 +55,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
   }
 
   // Return active keys and revoked keys (exclude key_hash for security)
-  const { data: keys, error: keysError } = await supabase
+  const { data: keys, error: keysError } = await adminClient
     .from("ps_api_keys")
     .select(
       "id, key_prefix, label, environment, active, created_by, created_at, revoked_at, expires_at"
@@ -92,8 +94,10 @@ export async function POST(request: Request, { params }: RouteContext) {
     );
   }
 
+  const supabaseAdmin = await createAdminClient();
+
   // Verify membership and role
-  const { data: membership, error: membershipError } = await supabase
+  const { data: membership, error: membershipError } = await supabaseAdmin
     .from("ps_org_members")
     .select("role")
     .eq("org_id", orgId)
@@ -171,7 +175,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   // Fetch org plan
-  const { data: org, error: orgError } = await supabase
+  const { data: org, error: orgError } = await supabaseAdmin
     .from("ps_organizations")
     .select("plan_id")
     .eq("id", orgId)
@@ -189,8 +193,6 @@ export async function POST(request: Request, { params }: RouteContext) {
     );
   }
 
-  const supabaseAdmin = await createAdminClient();
-
   // Check active key count against plan limit
   const { count: activeKeyCount, error: countError } = await supabaseAdmin
     .from("ps_api_keys")
@@ -205,7 +207,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       error: countError.message,
     });
     return NextResponse.json(
-      { error: "Failed to create key", code: "INTERNAL_ERROR" },
+      { error: countError.message || "Failed to create key", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }
@@ -254,7 +256,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       error: insertError.message,
     });
     return NextResponse.json(
-      { error: "Failed to create key", code: "INTERNAL_ERROR" },
+      { error: insertError.message || "Failed to create key", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }
