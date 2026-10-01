@@ -157,9 +157,9 @@ The Controller provides general written authorization for the following sub-proc
 
 | Sub-Processor | Service | Location | Data Access |
 |---------------|---------|----------|-------------|
-| **Hetzner Online GmbH** | Infrastructure hosting (VPS) | Falkenstein, Germany (EU) | Physical host of encrypted vault data |
+| **OVH S.r.l. / OVH SAS** | Infrastructure hosting (VPS) | Gravelines, France (EU) | Physical host of encrypted vault data |
 
-**Note**: Redis runs as a self-hosted, co-located service on the Hetzner VPS, bound to `localhost:6379`. It is not a separate sub-processor. The NER model (XLM-RoBERTa ONNX INT8) runs locally on the same server -- no external ML API calls are made.
+**Note**: Redis runs as a self-hosted, co-located service on the OVHcloud VPS, bound to `localhost:6379`. It is not a separate sub-processor. The NER model (XLM-RoBERTa ONNX INT8) runs locally on the same server -- no external ML API calls are made.
 
 ### 7.2 Sub-Processor Changes
 
@@ -247,7 +247,7 @@ Liability for damages arising from a breach of this Agreement shall be governed 
 
 If the Controller is established outside the EU/EEA, or if data transfers to third countries become necessary in the future, the Parties shall execute the Standard Contractual Clauses (EU Commission Implementing Decision 2021/914) as an addendum to this Agreement.
 
-**Current status**: No international data transfers occur. All processing takes place within the EU (Hetzner, Falkenstein, Germany).
+**Current status**: No international data transfers occur. All processing takes place within the EU (OVHcloud, Gravelines, France).
 
 ## 13. GOVERNING LAW
 

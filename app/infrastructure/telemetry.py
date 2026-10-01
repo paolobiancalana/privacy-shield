@@ -89,6 +89,7 @@ SAFE_LOG_FIELDS: frozenset[str] = frozenset({
     "text_count",
     "environment",
     "key_hash",
+    "created",
     # Audit / GDPR Article 30 fields
     "audit",
     "pii_type_counts",

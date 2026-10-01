@@ -13,6 +13,7 @@ Endpoints:
   DELETE /api/v1/keys/{key_hash}   — revoke a key (requires X-Admin-Key)
   GET  /api/v1/keys                — list keys, optionally filtered by org_id (requires X-Admin-Key)
   GET  /api/v1/usage/{org_id}      — get monthly usage stats (requires X-Admin-Key)
+  POST /api/v1/provision           — provision an org: assign plan + create API key (requires X-Admin-Key)
   GET  /health                     — structured liveness check (Redis + crypto + SLM)
   GET  /metrics                    — in-memory metrics snapshot (JSON)
 """
@@ -27,6 +28,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
 
 from app.application.flush_request import FlushRequestUseCase
+from app.application.provision_org import ProvisionOrgUseCase
 from app.application.rehydrate_text import RehydrateTextUseCase
 from app.application.rotate_dek import RotateDekUseCase
 from app.application.tokenize_text import TokenizeTextUseCase
@@ -49,6 +51,8 @@ from app.infrastructure.api.schemas import (
   HealthResponse,
   OrgPlanResponse,
   PlanResponse,
+  ProvisionRequest,
+  ProvisionResponse,
   RehydrateRequest,
   RehydrateResponse,
   RotateDekRequest,
@@ -451,6 +455,91 @@ async def create_key(
     key=result.raw_key,
     key_id=result.metadata.key_id,
     organization_id=result.metadata.org_id,
+  )
+
+
+@router.post(
+  "/api/v1/provision",
+  response_model=ProvisionResponse,
+  summary="Provision an organization: assign plan + create API key (idempotent)",
+  dependencies=[Depends(require_admin_key)],
+)
+async def provision_org(
+  body: ProvisionRequest,
+  container=Depends(_get_container),
+) -> ProvisionResponse:
+  """
+  Atomically assign a plan and create an API key for an organization.
+
+  Idempotent: if the org already has an active key for the requested
+  environment, returns the existing key_id and current plan without creating
+  a duplicate. The raw key is only returned on first provision (created=True).
+
+  If the org has reached the plan's max_keys limit, returns 409.
+  If the plan_id is unknown, returns 404.
+
+  Requires X-Admin-Key header.
+  """
+  use_case: ProvisionOrgUseCase = container.provision_org_use_case
+  t0 = time.perf_counter()
+
+  target_plan = get_plan(body.plan_id)
+  if target_plan is None:
+    raise HTTPException(
+      status_code=404,
+      detail=f"Plan '{body.plan_id}' not found",
+    )
+
+  try:
+    result = await use_case.execute(
+      org_id=body.organization_id,
+      plan_id=body.plan_id,
+      environment=body.environment,
+    )
+  except MaxKeysExceededError as exc:
+    container.metrics.record_max_keys_exceeded(exc.plan_id)
+    _logger.warning(
+      "Max keys exceeded during provision",
+      extra={"_ps_operation": "provision_org", "org_id": body.organization_id},
+    )
+    raise HTTPException(
+      status_code=409,
+      detail=(
+        f"Organization has reached the maximum number of API keys "
+        f"({exc.max_keys}) for plan '{exc.plan_id}'. "
+        "Revoke an existing key or upgrade your plan."
+      ),
+    ) from exc
+  except Exception as exc:
+    log_error(
+      _logger,
+      operation="provision_org",
+      org_id=body.organization_id,
+      error_code="PROVISION_FAILED",
+      message="provision use case raised an exception",
+      exc=exc,
+    )
+    raise HTTPException(status_code=500, detail="Provisioning failed") from exc
+
+  duration_ms = (time.perf_counter() - t0) * 1000.0
+  log_operation(
+    _logger,
+    operation="provision_org",
+    org_id=body.organization_id,
+    duration_ms=duration_ms,
+    plan=result.plan,
+    key_id=result.key_id,
+    created=result.created,
+    environment=result.environment,
+  )
+
+  return ProvisionResponse(
+    plan=result.plan,
+    key=result.key,
+    key_id=result.key_id,
+    created=result.created,
+    organization_id=result.org_id,
+    environment=result.environment,
   )
 
 

@@ -12,14 +12,19 @@ All key prefixes are namespaced under "ps:" to avoid collisions with the vault.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 import redis.asyncio as aioredis
 
 from app.domain.entities import ApiKeyMetadata, UsageRecord
 from app.domain.ports.api_key_port import ApiKeyPort
+
+if TYPE_CHECKING:
+    from app.infrastructure.adapters.supabase_api_key_loader import SupabaseApiKeyLoader
 
 
 class RedisApiKeyAdapter(ApiKeyPort):
@@ -79,8 +84,13 @@ end
 return 1
 """
 
-  def __init__(self, redis_client: aioredis.Redis) -> None:
+  def __init__(
+    self,
+    redis_client: aioredis.Redis,
+    supabase_loader: "SupabaseApiKeyLoader | None" = None,
+  ) -> None:
     self._redis = redis_client
+    self._supabase_loader = supabase_loader
 
   def _metadata_key(self, key_hash: str) -> str:
     return f"{self._APIKEY_PREFIX}:{key_hash}"
@@ -123,14 +133,37 @@ return 1
     await pipe.execute()
 
   async def validate_key(self, key_hash: str) -> ApiKeyMetadata | None:
-    """Return metadata for an active key, or None if missing/revoked."""
+    """
+    Return metadata for an active key, or None if missing/revoked.
+
+    Cache-aside fallback: if key is absent from Redis (e.g. after a Redis
+    restart or a key created after the last warm-up), transparently fetches
+    it from Supabase and repopulates Redis so subsequent requests hit cache.
+    """
     raw = await self._redis.get(self._metadata_key(key_hash))
-    if raw is None:
+    if raw is not None:
+      data = json.loads(self._decode_bytes(raw))
+      if not data.get("active", False):
+        return None
+      return ApiKeyMetadata(**data)
+
+    # Cache miss — try Supabase fallback if loader is configured
+    if self._supabase_loader is None:
       return None
-    data = json.loads(self._decode_bytes(raw))
-    if not data.get("active", False):
+
+    try:
+      metadata = await asyncio.get_event_loop().run_in_executor(
+        None, self._supabase_loader.load_by_hash, key_hash
+      )
+    except Exception:
       return None
-    return ApiKeyMetadata(**data)
+
+    if metadata is None:
+      return None
+
+    # Repopulate Redis so future requests hit cache
+    await self.store_key(metadata)
+    return metadata
 
   async def revoke_key(self, key_hash: str) -> bool:
     """Set active=False in the stored metadata. Returns False if not found."""

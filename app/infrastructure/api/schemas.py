@@ -270,3 +270,60 @@ class OrgPlanResponse(BaseModel):
   usage: dict
   active_keys: int
   max_keys: int
+
+
+class ProvisionRequest(BaseModel):
+  """
+  Request body for POST /api/v1/provision.
+
+  Idempotent: calling with the same organization_id and environment a second
+  time returns the existing key_id without creating a duplicate key.
+  """
+
+  organization_id: str = Field(
+    ...,
+    description="UUID of the organization to provision.",
+  )
+  plan_id: str = Field(
+    "free",
+    description="Plan to assign to the organization. Defaults to 'free'.",
+  )
+  environment: str = Field(
+    "live",
+    pattern="^(live|test)$",
+    description="Key environment: 'live' or 'test'. Defaults to 'live'.",
+  )
+
+  @field_validator("organization_id")
+  @classmethod
+  def validate_org_id(cls, v: str) -> str:
+    return _validate_uuid(v, "organization_id")
+
+
+class ProvisionResponse(BaseModel):
+  """
+  Response body for POST /api/v1/provision.
+
+  On first provision (created=True): key contains the raw API key shown once.
+  On subsequent calls (created=False): key is an empty string — the raw key
+  cannot be recovered; revoke the existing key and re-provision if needed.
+  """
+
+  plan: str = Field(..., description="Plan ID assigned to the organization.")
+  key: str = Field(
+    ...,
+    description=(
+      "Raw API key shown exactly once on first provision. "
+      "Empty string if the org was already provisioned for this environment."
+    ),
+  )
+  key_id: str = Field(
+    ...,
+    description="Stable key identifier (safe to store; use for revocation).",
+  )
+  created: bool = Field(
+    ...,
+    description="True if a new key was created; False if already provisioned.",
+  )
+  organization_id: str
+  environment: str

@@ -52,7 +52,7 @@ Individuals whose personal data appears in texts submitted by data controllers (
 
 | Component | Technology | Location |
 |-----------|-----------|----------|
-| API Server | Python 3.11 + FastAPI + Uvicorn | Hetzner VPS, Falkenstein, DE |
+| API Server | Python 3.11 + FastAPI + Uvicorn | OVHcloud VPS, Gravelines, FR |
 | NER Model | XLM-RoBERTa-base, ONNX Runtime INT8 (265MB) | Local, same server |
 | Regex Engine | 7 compiled Python regex patterns | Local, same server |
 | Span Fusion | Deterministic trim + merge + overlap resolution | Local, same server |

@@ -20,6 +20,7 @@ import redis.asyncio as aioredis
 
 from app.application.create_api_key import CreateApiKeyUseCase
 from app.application.flush_request import FlushRequestUseCase
+from app.application.provision_org import ProvisionOrgUseCase
 from app.application.rehydrate_text import RehydrateTextUseCase
 from app.application.revoke_api_key import RevokeApiKeyUseCase
 from app.application.rotate_dek import RotateDekUseCase
@@ -36,6 +37,7 @@ from app.infrastructure.adapters.redis_api_key import RedisApiKeyAdapter
 from app.infrastructure.adapters.redis_org_plan import RedisOrgPlanAdapter
 from app.infrastructure.adapters.redis_vault import RedisVaultAdapter
 from app.infrastructure.adapters.regex_detection import RegexDetectionAdapter
+from app.infrastructure.adapters.supabase_api_key_loader import SupabaseApiKeyLoader
 from app.infrastructure.config import Settings
 from app.infrastructure.metrics import PrivacyShieldMetrics
 from app.infrastructure.telemetry import get_logger
@@ -67,7 +69,14 @@ class Container:
     self._org_plan_adapter: RedisOrgPlanAdapter | None = None
     self._create_api_key_use_case: CreateApiKeyUseCase | None = None
     self._revoke_api_key_use_case: RevokeApiKeyUseCase | None = None
+    self._provision_org_use_case: ProvisionOrgUseCase | None = None
     self._metrics: PrivacyShieldMetrics = PrivacyShieldMetrics()
+    # Supabase loader — None when env vars are not configured
+    self._supabase_loader: SupabaseApiKeyLoader | None = (
+      SupabaseApiKeyLoader(config.supabase_url, config.supabase_service_key)
+      if config.supabase_url and config.supabase_service_key
+      else None
+    )
 
   async def initialize(self) -> None:
     """
@@ -89,6 +98,17 @@ class Container:
     await self._redis.ping()
     _logger.info("Redis connection established", extra={"_ps_operation": "init"})
 
+    # Warm-up: load all active API keys from Supabase into Redis so that
+    # a Redis restart does not silently break all authentication.
+    if self._supabase_loader is not None:
+      await self._warmup_redis_from_supabase()
+    else:
+      _logger.warning(
+        "SUPABASE_URL / SUPABASE_SERVICE_KEY not configured — "
+        "Redis warm-up skipped. Keys must already be in Redis.",
+        extra={"_ps_operation": "init"},
+      )
+
     _ = self.crypto_port
     _logger.info("Privacy Shield container ready")
 
@@ -97,6 +117,36 @@ class Container:
     if self._redis is not None:
       await self._redis.aclose()
       _logger.info("Redis connection pool closed")
+
+  async def _warmup_redis_from_supabase(self) -> None:
+    """
+    Load all active API keys from Supabase into Redis.
+
+    Runs in a thread executor because supabase-py uses the sync httpx client.
+    Called once at startup. Errors are logged but never propagate — a warm-up
+    failure must not prevent the service from starting.
+    """
+    import asyncio
+
+    try:
+      loop = asyncio.get_event_loop()
+      keys = await loop.run_in_executor(
+        None, self._supabase_loader.load_all_active  # type: ignore[union-attr]
+      )
+      adapter = self.api_key_port  # RedisApiKeyAdapter
+      for key_meta in keys:
+        await adapter.store_key(key_meta)
+      _logger.info(
+        "Redis warm-up complete",
+        extra={"_ps_operation": "warmup", "_ps_keys_loaded": len(keys)},
+      )
+    except Exception as exc:
+      _logger.error(
+        "Redis warm-up failed — service will start but auth may fail for "
+        "keys not already in Redis: %s",
+        exc,
+        extra={"_ps_operation": "warmup"},
+      )
 
   @property
   def redis_client(self) -> aioredis.Redis:
@@ -177,9 +227,12 @@ class Container:
 
   @property
   def api_key_port(self) -> ApiKeyPort:
-    """Lazy singleton: Redis-backed API key adapter."""
+    """Lazy singleton: Redis-backed API key adapter with Supabase fallback."""
     if self._api_key_adapter is None:
-      self._api_key_adapter = RedisApiKeyAdapter(self.redis_client)
+      self._api_key_adapter = RedisApiKeyAdapter(
+        self.redis_client,
+        supabase_loader=self._supabase_loader,
+      )
     return self._api_key_adapter
 
   @property
@@ -205,6 +258,16 @@ class Container:
         api_key_port=self.api_key_port
       )
     return self._revoke_api_key_use_case
+
+  @property
+  def provision_org_use_case(self) -> ProvisionOrgUseCase:
+    """Lazy singleton: provision an org (plan assignment + key creation)."""
+    if self._provision_org_use_case is None:
+      self._provision_org_use_case = ProvisionOrgUseCase(
+        api_key_port=self.api_key_port,
+        org_plan_port=self.org_plan_port,
+      )
+    return self._provision_org_use_case
 
   @property
   def metrics(self) -> PrivacyShieldMetrics:

@@ -94,7 +94,7 @@ The raw key is shown ONCE. User must copy it. We store only the SHA-256 hash. Th
 - Daily cron job: read PS `/api/v1/usage/{org_id}` → report to Stripe
 
 ### 4. Runtime Engine Unchanged
-The PS runtime on Hetzner stays exactly as-is. The platform layer is a separate service that:
+The PS runtime on OVHcloud stays exactly as-is. The platform layer is a separate service that:
 - Manages users, orgs, plans in Supabase
 - Proxies key creation/revocation to PS runtime admin endpoint
 - Reads usage data from PS runtime for billing

@@ -12,7 +12,7 @@
 | Database | Supabase PostgreSQL | Latest | Shared with SNAP ecosystem, RLS |
 | Payments | Stripe | API v2024+ | Subscriptions + usage metering |
 | Hosting (frontend) | Vercel | Free tier initially | Native Next.js, auto-deploy from git |
-| Hosting (platform API) | Same Hetzner VPS | — | Co-located with runtime, no latency |
+| Hosting (runtime/API) | OVHcloud VPS | — | Co-located with runtime engine in Gravelines (FR) |
 | CSS | Tailwind CSS | 4+ | Utility-first, dark mode |
 | UI Components | shadcn/ui | Latest | Accessible, composable, no bundle bloat |
 

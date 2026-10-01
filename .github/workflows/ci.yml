@@ -56,34 +56,32 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - name: Deploy to Hetzner
+      - name: Deploy to OVH VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
-          username: root
+          username: paolo
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /home/deploy/privacy-shield
-            sudo -u deploy git pull origin main
-            /opt/pii/venv/bin/pip install -q -r requirements-app.txt
-            systemctl restart pii
-            sleep 4
+            cd ~/privacy-shield
+            git pull origin main
+            docker compose up -d --build
+            sleep 5
 
       - name: Smoke test
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
-          username: root
+          username: paolo
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             STATUS=$(curl -sf http://127.0.0.1:8000/health | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
             if [ "$STATUS" != "healthy" ]; then
               echo "SMOKE TEST FAILED: status=$STATUS"
               echo "Rolling back..."
-              cd /home/deploy/privacy-shield
-              sudo -u deploy git checkout HEAD~1
-              /opt/pii/venv/bin/pip install -q -r requirements-app.txt
-              systemctl restart pii
+              cd ~/privacy-shield
+              git checkout HEAD~1
+              docker compose up -d --build
               exit 1
             fi
             echo "Smoke test passed: status=healthy"

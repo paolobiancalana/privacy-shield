@@ -43,6 +43,10 @@ class Settings(BaseSettings):
   default_rate_limit: int = Field(100, alias="DEFAULT_RATE_LIMIT")
   max_tokens_per_org: int = Field(10_000, alias="MAX_TOKENS_PER_ORG")
   pii_model_dir: str = Field("/opt/pii/model", alias="PII_MODEL_DIR")
+  # Supabase — optional, used for Redis warm-up and cache-aside fallback.
+  # If absent, keys must be in Redis already (legacy behaviour).
+  supabase_url: str = Field("", alias="SUPABASE_URL")
+  supabase_service_key: str = Field("", alias="SUPABASE_SERVICE_KEY")
 
   model_config = {"populate_by_name": True}
 

@@ -69,8 +69,8 @@ Callers may also trigger immediate deletion at any time via the `POST /api/v1/fl
 
 | Sub-Processor | Role | Location | Data Accessed |
 |---------------|------|----------|---------------|
-| **Hetzner Online GmbH** | Infrastructure hosting (VPS) | Falkenstein, Germany (EU) | Encrypted vault entries in transit within the server |
-| **Redis** (self-hosted) | Ephemeral in-memory cache | Co-located on Hetzner VPS, Falkenstein, Germany (EU) | Encrypted PII values (AES-256-GCM ciphertext only) |
+| **OVH S.r.l. / OVH SAS** | Infrastructure hosting (VPS) | Gravelines, France (EU) | Encrypted vault entries in transit within the server |
+| **Redis** (self-hosted) | Ephemeral in-memory cache | Co-located on OVHcloud VPS, Gravelines, France (EU) | Encrypted PII values (AES-256-GCM ciphertext only) |
 
 No third-party SaaS services receive or process PII. The NER model (XLM-RoBERTa ONNX INT8) runs locally on the same server -- no external ML API calls are made.
 
@@ -93,7 +93,7 @@ Data subjects whose personal data may appear in texts submitted to Privacy Shiel
 
 **No international data transfers occur.** All processing, storage, and transmission take place within the European Union:
 
-- Server: Hetzner Online GmbH, Falkenstein, Germany
+- Server: OVH S.r.l. / OVH SAS, Gravelines, France
 - Redis: localhost on the same server
 - NER model: runs locally on the same server
 - No external API calls are made during PII processing

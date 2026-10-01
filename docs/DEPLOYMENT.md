@@ -6,41 +6,42 @@
 
 | Component | Detail |
 |-----------|--------|
-| Host | Hetzner VPS (37.27.188.44) |
-| Domain | privacyshield.pro (landing), api.privacyshield.pro (API) |
-| OS | Ubuntu 24.04 LTS |
-| CPU | 2 vCPU |
-| RAM | 3.7 GB (model uses ~680MB, 2.6GB available) |
-| Disk | 38 GB (model 265MB, 35GB free) |
+| Host | OVHcloud VPS-1 (Gravelines, France) |
+| Domain | privacyshield.pro (landing on Vercel), api.privacyshield.pro (API on OVH) |
+| OS | Ubuntu 24.04 / 26.04 LTS |
+| CPU | 2 vCore |
+| RAM | 4 GB (model uses ~680MB, ~3GB available) |
+| Disk | 40 GB SSD NVMe (model 265MB, ~36GB free) |
 | Swap | 2 GB |
 
 ## Service Architecture
 
 ```
-Internet → Nginx (443, TLS 1.3 + mTLS) → FastAPI (localhost:8000) → ONNX Runtime + Redis
+Internet → Nginx (80/443, TLS 1.3) → FastAPI (127.0.0.1:8000 via Docker) → ONNX Runtime + Redis
 ```
 
-## Users & Permissions
+## Production Details
 
-| User | Purpose | Shell | Sudo |
-|------|---------|-------|------|
-| root | Emergency access | /bin/bash | yes |
-| deploy | Code deployment, git pull | /bin/bash | NOPASSWD |
-| pii | Runtime service (non-root) | /usr/sbin/nologin | no |
+| Component | Detail |
+|-----------|--------|
+| Host IP | `162.19.78.180` |
+| Primary User | `paolo` (SSH key authentication, NOPASSWD sudo, docker group) |
+| System User | `ubuntu` (maintenance) |
+| SSH Shortcut | `ssh privacyshield` o `ssh paolo@privacyshield` (configurato in `~/.ssh/config`) |
+| Location | Gravelines (France) — OVHcloud SAS |
+| Stack | Docker Compose (`privacy-shield` Python 3.12 container + `redis:7-alpine`) |
+| Reverse Proxy | Nginx on host proxying `http://127.0.0.1:8000` |
 
 ## Directory Layout
 
 ```
-/home/deploy/privacy-shield/    # Git repo (code)
-/opt/pii/
-  ├── venv/                     # Python virtual environment
-  ├── model/                    # ONNX INT8 model files
-  │   ├── model_int8.onnx       # 265MB quantized model
-  │   ├── config.json           # Model config with id2label
-  │   ├── tokenizer.json        # XLM-RoBERTa tokenizer
-  │   └── tokenizer_config.json
-  ├── logs/                     # Application logs
-  └── .env                      # Environment variables (600, owner: pii)
+/home/ubuntu/privacy-shield/
+  ├── Dockerfile
+  ├── docker-compose.yml
+  ├── requirements-app.txt
+  ├── .env                          # chmod 600, env variables
+  ├── app/                          # FastAPI microservice
+  └── .local/pii-model/             # ONNX INT8 model (265MB) + tokenizer
 ```
 
 ## Environment Variables (/opt/pii/.env)
@@ -151,7 +152,7 @@ openssl verify -CAfile ca.crt newclient.crt
 
 ```bash
 # 1. SSH into server
-ssh deploy@37.27.188.44
+ssh deploy@<OVH_VPS_IP>
 
 # 2. Pull latest code
 cd /home/deploy/privacy-shield

@@ -10,13 +10,16 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "127.0.0.1:${HOST_PORT:-8000}:8000"
     environment:
       - PRIVACY_SHIELD_KEK_BASE64=${PRIVACY_SHIELD_KEK_BASE64}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - TOKEN_TTL_SECONDS=${TOKEN_TTL_SECONDS:-60}
       - APP_VERSION=1.0.0
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY:-}
     depends_on:
       redis:
         condition: service_healthy
@@ -32,12 +35,15 @@ services:
       redis-server
       --maxmemory 100mb
       --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:-changeme}
       --save ""
       --appendonly no
-    ports:
-      - "6379:6379"
+    # Redis not exposed to host by default — only reachable from privacy-shield service.
+    # Uncomment below for local debugging:
+    # ports:
+    #   - "127.0.0.1:6381:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "--no-auth-warning", "ping"]
       interval: 5s
       timeout: 3s
       retries: 3

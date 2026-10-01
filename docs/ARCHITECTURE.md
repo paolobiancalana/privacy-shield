@@ -41,7 +41,7 @@ Privacy Shield is a **standalone SaaS platform** for PII (Personally Identifiabl
 │  │  - Redis vault (ephemeral, zero persistence)    │        │
 │  │  - Per-org isolation (vault, DEK, usage)        │        │
 │  │                                                 │        │
-│  │  Host: Hetzner VPS (api.privacyshield.pro)      │        │
+│  │  Host: OVHcloud VPS (api.privacyshield.pro)    │        │
 │  └─────────────────────────────────────────────────┘        │
 └─────────────────────────────────────────────────────────────┘
 
@@ -102,7 +102,7 @@ External integrations:
 | GET | /health | Public | Service health check |
 | GET | /metrics | Admin key | In-memory metrics |
 
-### Performance (Hetzner VPS, 2vCPU/4GB)
+### Performance (OVHcloud VPS, 2vCPU/4GB)
 
 | Metric | Value |
 |--------|-------|
@@ -241,8 +241,8 @@ usage_daily
 | Dashboard | Next.js or SvelteKit | TBD |
 | Database | Supabase (PostgreSQL) | Already used by SNAP, auth built-in |
 | Payments | Stripe | Industry standard |
-| Hosting (Runtime) | Hetzner VPS | Current, 2vCPU/4GB, €3.65/mo |
-| Hosting (Platform) | Vercel or same VPS | TBD |
+| Hosting (Runtime) | OVHcloud VPS | Gravelines (FR), 2vCPU/4GB, €3.81/mo |
+| Hosting (Platform) | Vercel | Active, connected to Supabase |
 | Domain | privacyshield.pro | Active, DNS configured |
 
 ## Repository Structure
@@ -275,7 +275,7 @@ privacy-shield/
 | # | Milestone | Status | Target |
 |---|-----------|--------|--------|
 | 1 | Runtime engine (NER + Regex + Vault) | ✅ Done | — |
-| 2 | Production deployment (Hetzner + mTLS) | ✅ Done | — |
+| 2 | Production deployment (OVHcloud + mTLS) | ✅ Done | — |
 | 3 | Security hardening (red team passed) | ✅ Done | — |
 | 4 | SNAP Framework integration (mTLS adapter) | ✅ Done | — |
 | 5 | Admin CLI for org/key management | Next | Sprint 1 |
