@@ -29,11 +29,12 @@ function getCurrentMonthStart(): string {
 
 async function syncLiveUsage(orgId: string) {
   try {
-    const runtimeUrl = process.env.PS_RUNTIME_URL || "https://api.privacyshield.pro";
-    const adminKey =
-      process.env.PS_ADMIN_KEY ||
-      process.env.ADMIN_API_KEY ||
-      "ps_adm_add9f395e8e1bfc2ac5c822db24c7667d7e00d81";
+    const runtimeUrl = process.env.PS_RUNTIME_URL;
+    const adminKey = process.env.PS_ADMIN_KEY || process.env.ADMIN_API_KEY;
+
+    if (!runtimeUrl || !adminKey) {
+      return;
+    }
 
     const res = await fetch(`${runtimeUrl}/api/v1/usage/${orgId}`, {
       headers: { "X-Admin-Key": adminKey },
