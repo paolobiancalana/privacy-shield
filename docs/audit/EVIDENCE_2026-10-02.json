@@ -1,0 +1,218 @@
+{
+  "date": "2026-10-02",
+  "timezone": "Europe/Rome",
+  "classification": "Internal - security assessment",
+  "local_commit": "f48c2528ded9407176e997c33f4560fe1625d87d",
+  "remote_checkout_commit": "6e97baa669f4cafc20f511e9fc349d1f0e025ba5",
+  "remote_checkout_modified_tracked_files": 9,
+  "remote_checkout_untracked_application_files": 2,
+  "runtime_python_files_compared": 42,
+  "runtime_python_files_different": 0,
+  "runtime": [
+    {
+      "container": "privacy-shield-privacy-shield-1",
+      "image": "sha256:a68cf5c16e6f32e258a4a54cb349ecf810e7072bdf207884903e6b7670b976a6",
+      "user": "appuser",
+      "readonly": true,
+      "tmpfs": {
+        "/tmp": ""
+      },
+      "memory": 0,
+      "memory_swap": 0,
+      "log_config": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "cap_drop": null,
+      "security_opt": null,
+      "ulimits": null,
+      "privileged": false
+    },
+    {
+      "container": "privacy-shield-redis-1",
+      "image": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "user": "",
+      "readonly": false,
+      "tmpfs": null,
+      "memory": 134217728,
+      "memory_swap": 268435456,
+      "log_config": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "cap_drop": null,
+      "security_opt": null,
+      "ulimits": null,
+      "privileged": false
+    },
+    {
+      "save": "",
+      "appendonly": "no",
+      "maxmemory": "104857600",
+      "maxmemory-policy": "allkeys-lru",
+      "evicted_keys": 0,
+      "password_configured": true,
+      "password_is_default": false,
+      "token_ttl_seconds": "60",
+      "supabase_configured": true,
+      "app_hashes": {
+        "app/container.py": "1114df9ee1eb2290702cd464e993d1e74a8c861563681413ea507ca691d0f768",
+        "app/__init__.py": "4231268eeba704b42424a9024923b3624eef5a3622c5fc40e1b2e6edbb4000f3",
+        "app/main.py": "56e6c3603ebffa85fa4269136ac04deb78e05225b8faf95ee175bdb154f550da",
+        "app/domain/plans.py": "431d623de2458d396fe492dc13ed3e0e0aa8e3c9845df0a49c26506eb4e13d1a",
+        "app/domain/__init__.py": "46d6c1f7ca7e2a1c33967d388dfb055bc4da0dd9e4c7a59865a77123893601b0",
+        "app/domain/entities.py": "8fb34748edd3efde5fd4df3905294d4d518d6d5feab1c80663241c4cf2408eb9",
+        "app/application/__init__.py": "556e2ae385df4c15436394ffce977260b1b1f96b25fd53bca2508a167d616fb9",
+        "app/application/tokenize_text.py": "bdc1bdfa5a06dfc18e112c4bec26b19b60f5f2743666271db6b5f6fb3c58d8af",
+        "app/application/provision_org.py": "1222c090e732e0fe52c724ac830837c9f0dba9422b8fe4a4dfdb1eb8448f9125",
+        "app/application/rehydrate_text.py": "b010555e3b3dd366a78c6f6792b38a2cd001705c941e7a233643124f69d88b17",
+        "app/application/rotate_dek.py": "26cb3cec02fbbe5ff0ea6c6ade9f937590ed1dcd98b3a702d4d8ae96a74bcb1d",
+        "app/application/flush_request.py": "ddc27601de3708e7924cc255b384c8c59399e283fb73175cc6d4f285e7171e6b",
+        "app/application/revoke_api_key.py": "5263c7985fac3bb7e6d616c19fe1c847ef035f26dcad1731171f35e6e98baa22",
+        "app/application/create_api_key.py": "1ddf8ddd40afab40cc0ae1b5e0bee040102597013aea36a1522782db73acdde7",
+        "app/infrastructure/metrics.py": "3a1eafcf7dea69660931ef6469d15aef99415e386f54dd2e9a1fe96c9fd73a03",
+        "app/infrastructure/__init__.py": "dca3980bae7d0fe248a550fb9581886db884b5659a830e6e6e25ce132b0b15c3",
+        "app/infrastructure/config.py": "a27b123d6507e027e7257e5349a0cd99dcead81dc57a07fddea099988ccd96a4",
+        "app/infrastructure/telemetry.py": "2bd6af25fffbff26e075dc76c1f9345f979c4d5dee34efefabe86250140a820a",
+        "app/domain/services/__init__.py": "fc032e84aca6f74fbb7bbe5124ac1e9986959d6b455a9faa683246f995614c51",
+        "app/domain/services/span_fusion.py": "a8c21df8e19418f044741b576e73d1a20744acdb27648c4c4e66921bd2b6ab8c",
+        "app/domain/services/token_format.py": "367c920761858fd708f9e516eaa912f0225a4dbd035e818b248c641f2d16c59b",
+        "app/domain/ports/crypto_port.py": "31cd9b3eb0150b91d5935e8da406953666fe3d9a93766bc2881a85d8e1932af8",
+        "app/domain/ports/org_plan_port.py": "156a8accdbb7200c031f8d8d013f025adc8abdda9eabb6ad150bb72220316c5c",
+        "app/domain/ports/__init__.py": "104e35ce8ace1ce3de8f2a347639cc813d19765acdfcb758c6f1820509fa04da",
+        "app/domain/ports/detection_port.py": "ee17d066ca621b3acd201ba3ce4ae0cd13b2cc7c0f7ca07571bc62dee49ef185",
+        "app/domain/ports/vault_port.py": "c143e71e424b4401d18cc23b1c52cb64e9ea2a54e5c81bd8f190559072743f08",
+        "app/domain/ports/api_key_port.py": "f966e386771b161e55a3987c6921942275bf5a2c1d60b5cd03b4a03e4b55b0b4",
+        "app/infrastructure/adapters/__init__.py": "e6f8630b918f13b4aa163ec6d6446413a4d5008281637afb1da2bfc89c6f50ff",
+        "app/infrastructure/adapters/redis_api_key.py": "0942c6c0ae5a97c877b5b256bf4ab3d84116ed8073653d6f5bfd6f2fd4f08427",
+        "app/infrastructure/adapters/redis_vault.py": "2f3c725040e9accf05b89aba94df6a306cff451652b84dd98a81633d3016b4ec",
+        "app/infrastructure/adapters/ner_detection.py": "3546258efc61724c94d71c6a2799764b86e5eede1e5c9465e07acfa316294cb3",
+        "app/infrastructure/adapters/aes_crypto.py": "eee5cba09a4e718a5c23b53b095c56e8acd8c5c879e5a30c4b78e6d9f6c854fa",
+        "app/infrastructure/adapters/redis_org_plan.py": "f5cbc32d56a9cc20578c4cea598752db64edc5904012c20191942df90c9fceac",
+        "app/infrastructure/adapters/regex_detection.py": "52005317b3e5286fd3ede4c08298d7682e323eb78ea90c7014ec1927fc8a7077",
+        "app/infrastructure/adapters/supabase_api_key_loader.py": "6cb581b9930c8cded3bfd822dad28977a9fbf486e73416ec405eb214d267edf4",
+        "app/infrastructure/adapters/composite_detection.py": "504b7a71f5f920abc1184c823651ceef2f4650e02d52bce9de78e0a69955a972",
+        "app/infrastructure/api/auth.py": "6570622bfd29083a93401e9acde5fc3ae4b42791cb0c41db7a9134005ebdc2be",
+        "app/infrastructure/api/billing_stub.py": "4f1e784e53088e16fbd8f3433751b446f6930b065cf42ae5370a8e1aaa5ea93b",
+        "app/infrastructure/api/__init__.py": "0cb0605dd2f938aaf197df88a14af30f30357728ba77759edf13325dc4c31c5a",
+        "app/infrastructure/api/schemas.py": "2276e79800e6eb27410a5deb13383efd10ef9379f0635f31f607147ed8df95df",
+        "app/infrastructure/api/middleware.py": "997fb6382083cdc3d730b6077827540d130aa6544d5c12c8a75764f239dc4f3e",
+        "app/infrastructure/api/routes.py": "33a8a1ac96d832c8e83d0e63428694ce301e09adeeefa5e50102312c9e55642f"
+      }
+    }
+  ],
+  "network": {
+    "ssh_password": false,
+    "ssh_keyboard_interactive": false,
+    "ssh_pubkey": true,
+    "ufw": "active; public TCP 22 limited, 80,443 allowed",
+    "fail2ban_sshd_bantime_seconds": 86400,
+    "application_binding": "127.0.0.1:8000",
+    "redis_host_port_exposed": false,
+    "tls_config": [
+      "TLSv1.2",
+      "TLSv1.3"
+    ],
+    "mtls_directive_present": false,
+    "api_hsts_header_observed": false,
+    "health_http_without_client_cert": 200,
+    "metrics_http_without_admin_key": 401,
+    "ntp_synchronized": true
+  },
+  "persistence": {
+    "host_swap": "/swapfile 2 GiB; 316 KiB used at observation",
+    "nginx_body_temp": "/var/lib/nginx/body; root ext4",
+    "nginx_proxy_temp": "/var/lib/nginx/proxy",
+    "nginx_request_buffering_override_present": false,
+    "nginx_body_buffer_override_present": false,
+    "apport_enabled": true,
+    "container_core_size_limit": "unlimited",
+    "application_env_file_mode": "0600",
+    "nginx_logrotate": "daily, rotate14",
+    "docker_log_rotation_options": {}
+  },
+  "github": {
+    "branch_protection": "404 Branch not protected",
+    "rulesets": [],
+    "production_environment_protection_rules": [],
+    "monitor_state": "disabled_inactivity",
+    "last_monitor_run": "2026-05-16T15:06:30Z",
+    "latest_ci": "https://github.com/paolobiancalana/privacy-shield/actions/runs/36976086678",
+    "test_job": "success with four test files excluded",
+    "deploy_job": "failure"
+  },
+  "tests": {
+    "full_backend": {
+      "passed": 674,
+      "failed": 27,
+      "duration_seconds": 16.74,
+      "note": "26 failures with unavailable default model path /opt/pii/model; one assertion mismatch"
+    },
+    "excluded_files_rerun_with_local_model": {
+      "passed": 59,
+      "failed": 5,
+      "duration_seconds": 35.61,
+      "note": "Four rate-limit expectation mismatches and one error-message assertion; not proof of five production vulnerabilities"
+    },
+    "web_lint": "exit0; 3 warnings",
+    "web_build": "exit0",
+    "architecture_script": "could not run: missing peft; model-training script, not a verified layer-isolation gate",
+    "audit_reproductions": [
+      {
+        "case": "cached_revocation_expiry",
+        "reproduced": true,
+        "ttl": -1,
+        "source_reads": 1
+      },
+      {
+        "case": "interrupted_dek_rotation_retry",
+        "reproduced": true,
+        "reported_success": true,
+        "unreadable_tokens": 1
+      },
+      {
+        "case": "exception_log_payload",
+        "reproduced": true,
+        "synthetic_only": true
+      },
+      {
+        "case": "ner_tail_truncation",
+        "reproduced": true,
+        "input_characters": 6405,
+        "covered_characters": 3575,
+        "short_name_detected": true,
+        "tail_name_detected": false
+      }
+    ]
+  },
+  "npm_audit": {
+    "scope": "local platform/web lockfile incl dev/transitive dependencies",
+    "low": 3,
+    "moderate": 5,
+    "high": 13,
+    "critical": 1,
+    "total": 22,
+    "critical_package": "next 16.1.6",
+    "note": "Scanner findings per package; exploitability and exact deployed version not verified. Do not equate severity with ISO nonconformity classification."
+  },
+  "secrets": {
+    "live_key_literal_documented_in_session_log": true,
+    "smoke_test_has_key_literal_fallback": true,
+    "validity_tested": false,
+    "values_recorded": false
+  },
+  "limitations": [
+    "No external ISMS documents: user explicitly answered no.",
+    "No employee interviews, office visit or provider tenant attestation.",
+    "Supabase live RLS/Auth configuration, backups, region and Vercel release were not inspected.",
+    "No production write tests or exploitation; only read-only SSH/config/status and unauthenticated HTTP GET/HEAD.",
+    "No historical audit of secret values or customer log contents.",
+    "No production incident or customer-data disclosure asserted."
+  ],
+  "model_and_tokenizer_hashes_match": true,
+  "model_hashes": {
+    "model_int8.onnx": "b3b54f42c79b7a1b64823946998f91e2502ac60c602f8465e0515efe01264627",
+    "tokenizer.json": "f53431de146e9d60fea4941c76a6fb38342127ddbd12157339aa99e8bbf787df",
+    "tokenizer_config.json": "f12e7838d307fe61eb2149060ea5afd16e38054201d124b3b152a50d7c789dc8"
+  }
+}
