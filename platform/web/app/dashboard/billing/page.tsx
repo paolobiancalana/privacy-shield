@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type PlanId } from "@/lib/stripe/plans";
 import { BillingView } from "./billing-view";
 
@@ -13,6 +13,7 @@ export interface BillingData {
 
 export default async function BillingPage() {
   const supabase = await createClient();
+  const adminClient = await createAdminClient();
   const cookieStore = await cookies();
 
   const orgId = cookieStore.get("ps_selected_org")?.value ?? null;
@@ -24,12 +25,12 @@ export default async function BillingPage() {
   let resolvedOrgId = orgId;
 
   if (!resolvedOrgId && user) {
-    const { data: member } = await supabase
+    const { data: member } = await adminClient
       .from("ps_org_members")
       .select("org_id")
       .eq("user_id", user.id)
       .limit(1)
-      .single();
+      .maybeSingle();
     resolvedOrgId = member?.org_id ?? null;
   }
 
@@ -43,11 +44,11 @@ export default async function BillingPage() {
 
   if (resolvedOrgId) {
     // Fetch org with plan info via join
-    const { data: org } = await supabase
+    const { data: org } = await adminClient
       .from("ps_organizations")
       .select("plan_id, ps_plans(display_name, monthly_token_limit)")
       .eq("id", resolvedOrgId)
-      .single();
+      .maybeSingle();
 
     const planId = (org?.plan_id ?? "free") as PlanId;
     const plan = org?.ps_plans as unknown as {
@@ -62,7 +63,7 @@ export default async function BillingPage() {
     monthStart.setDate(1);
     const monthStartStr = monthStart.toISOString().split("T")[0];
 
-    const { data: usageRows } = await supabase
+    const { data: usageRows } = await adminClient
       .from("ps_usage_daily")
       .select("tokenize_calls, rehydrate_calls, flush_calls, tokens_created")
       .eq("org_id", resolvedOrgId)

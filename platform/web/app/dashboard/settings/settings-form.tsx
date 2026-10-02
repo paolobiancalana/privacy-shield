@@ -48,17 +48,22 @@ export function SettingsForm({ org, isOwner }: SettingsFormProps) {
     startSave(async () => {
       if (!org) return;
 
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("ps_organizations")
-        .update({ name: name.trim(), slug: slug.trim() })
-        .eq("id", org.id);
+      try {
+        const res = await fetch(`/api/orgs/${org.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name.trim(), slug: slug.trim() }),
+        });
 
-      if (error) {
-        toast.error(error.message ?? "Failed to save settings");
-      } else {
-        toast.success("Settings saved");
-        router.refresh();
+        const data = await res.json();
+        if (!res.ok) {
+          toast.error(data.error || "Failed to save settings");
+        } else {
+          toast.success("Settings saved");
+          router.refresh();
+        }
+      } catch (err) {
+        toast.error("An error occurred while saving settings");
       }
     });
   }
@@ -67,24 +72,23 @@ export function SettingsForm({ org, isOwner }: SettingsFormProps) {
     startDelete(async () => {
       if (!org) return;
 
-      const supabase = createClient();
+      try {
+        const res = await fetch(`/api/orgs/${org.id}`, {
+          method: "DELETE",
+        });
 
-      // Delete members first (FK)
-      await supabase.from("ps_org_members").delete().eq("org_id", org.id);
-
-      const { error } = await supabase
-        .from("ps_organizations")
-        .delete()
-        .eq("id", org.id);
-
-      if (error) {
-        toast.error(error.message ?? "Failed to delete organization");
-      } else {
-        toast.success("Organization deleted");
-        // Clear cookie and redirect
-        document.cookie =
-          "ps_selected_org=; path=/; max-age=0; SameSite=Lax";
-        router.push("/");
+        const data = await res.json();
+        if (!res.ok) {
+          toast.error(data.error || "Failed to delete organization");
+        } else {
+          toast.success("Organization deleted");
+          document.cookie =
+            "ps_selected_org=; path=/; max-age=0; SameSite=Lax";
+          router.push("/");
+          router.refresh();
+        }
+      } catch (err) {
+        toast.error("An error occurred while deleting organization");
       }
     });
   }
