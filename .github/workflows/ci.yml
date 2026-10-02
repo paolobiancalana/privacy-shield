@@ -69,9 +69,4 @@ jobs:
           username: paolo
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           command_timeout: 20m
-          script: |
-            set -eu
-            cd ~/privacy-shield
-            git fetch origin main
-            git show ${{ github.sha }}:scripts/deploy-release.sh > /tmp/privacyshield-deploy-${{ github.sha }}.sh
-            bash /tmp/privacyshield-deploy-${{ github.sha }}.sh ${{ github.sha }}
+          script: deploy ${{ github.sha }}
