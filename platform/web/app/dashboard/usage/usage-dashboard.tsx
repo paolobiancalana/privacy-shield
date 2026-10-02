@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useTransition } from "react";
+import { useState, useEffect, useCallback, Suspense, useTransition } from "react";
 import {
   ActivityIcon,
   KeyRoundIcon,
   ZapIcon,
   PercentIcon,
+  RefreshCwIcon,
 } from "lucide-react";
 
 import {
@@ -16,7 +17,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -26,11 +26,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { UsageSummary } from "./page";
 
 interface UsageDashboardProps {
   summary: UsageSummary;
   activeDays: number;
+  orgId?: string;
 }
 
 function formatNumber(n: number): string {
@@ -40,7 +43,7 @@ function formatNumber(n: number): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
+  return new Date(iso).toLocaleDateString("it-IT", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -53,10 +56,64 @@ const DAY_OPTIONS = [
   { value: "90", label: "90 giorni" },
 ] as const;
 
-function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
+function UsageDashboardInner({ summary, activeDays, orgId }: UsageDashboardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
+
+  const [liveSummary, setLiveSummary] = useState<UsageSummary>(summary);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Sync state if server prop changes
+  useEffect(() => {
+    setLiveSummary(summary);
+  }, [summary]);
+
+  // Real-time polling function
+  const fetchLive = useCallback(async (showSpin = false) => {
+    if (!orgId) return;
+    if (showSpin) setIsRefreshing(true);
+    try {
+      const res = await fetch(`/api/orgs/${orgId}/usage?period=${activeDays}d`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.summary) {
+          setLiveSummary(json.summary);
+        }
+      }
+    } catch (e) {
+      console.warn("[UsageDashboard] Polling error:", e);
+    } finally {
+      if (showSpin) {
+        setTimeout(() => setIsRefreshing(false), 500);
+      }
+    }
+  }, [orgId, activeDays]);
+
+  // Live auto-refresh: poll every 5s and on window focus
+  useEffect(() => {
+    if (!orgId) return;
+
+    // Fetch immediately on mount in case server had stale cache
+    fetchLive(false);
+
+    const interval = setInterval(() => {
+      fetchLive(false);
+    }, 5000);
+
+    const handleFocus = () => {
+      fetchLive(false);
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [orgId, fetchLive]);
 
   function handleTabChange(value: string) {
     startTransition(() => {
@@ -69,35 +126,35 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
   const summaryCards = [
     {
       title: "Chiamate totali",
-      value: formatNumber(summary.totalCalls),
+      value: formatNumber(liveSummary.totalCalls),
       description: `Ultimi ${activeDays} giorni`,
       icon: ActivityIcon,
       color: "text-blue-400",
     },
     {
       title: "Token creati",
-      value: formatNumber(summary.tokensCreated),
+      value: formatNumber(liveSummary.tokensCreated),
       description: `Ultimi ${activeDays} giorni`,
       icon: KeyRoundIcon,
       color: "text-violet-400",
     },
     {
       title: "Utilizzo mensile",
-      value: `${summary.percentUsed}%`,
-      description: `del limite di ${formatNumber(summary.monthlyLimit)} token`,
+      value: `${liveSummary.percentUsed}%`,
+      description: `del limite di ${formatNumber(liveSummary.monthlyLimit)} token`,
       icon: PercentIcon,
       color:
-        summary.percentUsed >= 90
+        liveSummary.percentUsed >= 90
           ? "text-red-400"
-          : summary.percentUsed >= 70
+          : liveSummary.percentUsed >= 70
             ? "text-amber-400"
             : "text-emerald-400",
     },
     {
       title: "Latenza media (p95)",
       value:
-        summary.avgLatencyMs !== null
-          ? `${summary.avgLatencyMs} ms`
+        liveSummary.avgLatencyMs !== null
+          ? `${liveSummary.avgLatencyMs} ms`
           : "—",
       description: `Ultimi ${activeDays} giorni`,
       icon: ZapIcon,
@@ -107,11 +164,34 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Utilizzo</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Monitora il consumo e le prestazioni delle tue API.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">Utilizzo</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Monitora il consumo e le prestazioni delle tue API in tempo reale.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-400 font-medium">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+            </span>
+            Live (5s)
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => fetchLive(true)}
+            disabled={isRefreshing}
+            className="size-8 text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Aggiorna ora"
+          >
+            <RefreshCwIcon className={cn("size-3.5", isRefreshing && "animate-spin")} />
+          </Button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -151,50 +231,41 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
               <span className="font-medium">
                 {formatNumber(
                   Math.round(
-                    (summary.percentUsed / 100) * summary.monthlyLimit
+                    (liveSummary.percentUsed / 100) * liveSummary.monthlyLimit
                   )
                 )}{" "}
-                / {formatNumber(summary.monthlyLimit)} tokens
+                / {formatNumber(liveSummary.monthlyLimit)} tokens
               </span>
               <span className="text-muted-foreground tabular-nums">
-                {summary.percentUsed}%
+                {liveSummary.percentUsed}%
               </span>
             </div>
-            <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
               <div
-                className={`h-full transition-all ${
-                  summary.percentUsed >= 90
+                className={cn(
+                  "h-full transition-all duration-500 ease-out",
+                  liveSummary.percentUsed >= 90
                     ? "bg-red-500"
-                    : summary.percentUsed >= 70
+                    : liveSummary.percentUsed >= 70
                       ? "bg-amber-500"
                       : "bg-primary"
-                }`}
-                style={{ width: `${summary.percentUsed}%` }}
+                )}
+                style={{ width: `${Math.min(100, liveSummary.percentUsed)}%` }}
               />
             </div>
+            {liveSummary.percentUsed >= 90 && (
+              <p className="text-xs text-red-400">
+                Attenzione: hai quasi esaurito la quota mensile del tuo piano.
+              </p>
+            )}
           </div>
-          {summary.percentUsed >= 80 && (
-            <div className="mt-3 flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className="border-amber-500/40 bg-amber-500/10 text-amber-400 text-xs"
-              >
-                {summary.percentUsed >= 95 ? "Critico" : "Attenzione"}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                {summary.percentUsed >= 95
-                  ? "Stai avvicinandoti al limite mensile. Aggiorna il piano per evitare interruzioni."
-                  : "Stai usando oltre l'80% della tua quota mensile."}
-              </span>
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Daily breakdown */}
+      {/* Daily activity table */}
       <Card>
         <CardHeader>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>Dettaglio giornaliero</CardTitle>
               <CardDescription>Attività API giornaliera.</CardDescription>
@@ -219,7 +290,7 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
         </CardHeader>
 
         <CardContent className="pt-0">
-          {summary.dailyRows.length === 0 ? (
+          {liveSummary.dailyRows.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <ActivityIcon className="mb-2 size-8 text-muted-foreground/40" />
               <p className="text-sm text-muted-foreground">
@@ -233,12 +304,13 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
                   <TableHead>Data</TableHead>
                   <TableHead className="text-right">Tokenizza</TableHead>
                   <TableHead className="text-right">Reidrata</TableHead>
+                  <TableHead className="text-right">Flush</TableHead>
                   <TableHead className="text-right">Token</TableHead>
                   <TableHead className="text-right">Latenza p95</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {summary.dailyRows.map((row) => (
+                {liveSummary.dailyRows.map((row) => (
                   <TableRow key={row.date}>
                     <TableCell className="text-muted-foreground">
                       {formatDate(row.date)}
@@ -248,6 +320,9 @@ function UsageDashboardInner({ summary, activeDays }: UsageDashboardProps) {
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {row.rehydrate_calls.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {row.flush_calls.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {row.tokens_created.toLocaleString()}
