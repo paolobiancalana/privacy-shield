@@ -123,6 +123,16 @@ function UsageDashboardInner({ summary, activeDays, orgId }: UsageDashboardProps
     });
   }
 
+  const currentMonthTokens =
+    liveSummary.monthlyTokensUsed !== undefined
+      ? liveSummary.monthlyTokensUsed
+      : liveSummary.tokensCreated;
+
+  const usagePercentDisplay =
+    currentMonthTokens > 0 && liveSummary.percentUsed === 0
+      ? "< 1%"
+      : `${liveSummary.percentUsed}%`;
+
   const summaryCards = [
     {
       title: "Chiamate totali",
@@ -140,7 +150,7 @@ function UsageDashboardInner({ summary, activeDays, orgId }: UsageDashboardProps
     },
     {
       title: "Utilizzo mensile",
-      value: `${liveSummary.percentUsed}%`,
+      value: usagePercentDisplay,
       description: `del limite di ${formatNumber(liveSummary.monthlyLimit)} token`,
       icon: PercentIcon,
       color:
@@ -229,15 +239,10 @@ function UsageDashboardInner({ summary, activeDays, orgId }: UsageDashboardProps
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">
-                {formatNumber(
-                  Math.round(
-                    (liveSummary.percentUsed / 100) * liveSummary.monthlyLimit
-                  )
-                )}{" "}
-                / {formatNumber(liveSummary.monthlyLimit)} tokens
+                {formatNumber(currentMonthTokens)} / {formatNumber(liveSummary.monthlyLimit)} tokens
               </span>
               <span className="text-muted-foreground tabular-nums">
-                {liveSummary.percentUsed}%
+                {usagePercentDisplay}
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -250,7 +255,14 @@ function UsageDashboardInner({ summary, activeDays, orgId }: UsageDashboardProps
                       ? "bg-amber-500"
                       : "bg-primary"
                 )}
-                style={{ width: `${Math.min(100, liveSummary.percentUsed)}%` }}
+                style={{
+                  width: `${Math.min(
+                    100,
+                    currentMonthTokens > 0
+                      ? Math.max(1, (currentMonthTokens / liveSummary.monthlyLimit) * 100)
+                      : 0
+                  )}%`,
+                }}
               />
             </div>
             {liveSummary.percentUsed >= 90 && (

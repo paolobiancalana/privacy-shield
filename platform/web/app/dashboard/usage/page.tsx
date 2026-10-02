@@ -15,6 +15,7 @@ export interface DailyUsageRow {
 export interface UsageSummary {
   totalCalls: number;
   tokensCreated: number;
+  monthlyTokensUsed?: number;
   percentUsed: number;
   avgLatencyMs: number | null;
   monthlyLimit: number;
@@ -147,6 +148,7 @@ async function fetchUsage(
   return {
     totalCalls,
     tokensCreated,
+    monthlyTokensUsed: monthTotal,
     percentUsed,
     avgLatencyMs,
     monthlyLimit,

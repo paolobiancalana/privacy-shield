@@ -211,6 +211,7 @@ export async function GET(request: Request, { params }: RouteContext) {
     summary: {
       totalCalls,
       tokensCreated,
+      monthlyTokensUsed,
       percentUsed: monthlyUsagePercent,
       avgLatencyMs,
       monthlyLimit: monthlyTokenLimit,
