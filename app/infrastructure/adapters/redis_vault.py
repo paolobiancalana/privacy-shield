@@ -16,10 +16,13 @@ other Redis consumers. UNLINK is used instead of DEL for non-blocking removal.
 from __future__ import annotations
 
 import logging
+import hashlib
+import uuid
 
 import redis.asyncio as aioredis
 
-from app.domain.ports.vault_port import VaultPort
+from app.domain.ports.vault_port import VaultPort, RotationSnapshot
+from redis.exceptions import WatchError
 
 _logger = logging.getLogger(__name__)
 
@@ -58,13 +61,27 @@ class RedisVaultAdapter(VaultPort):
     token_hash: str,
     encrypted_value: bytes,
     ttl_seconds: int,
-  ) -> None:
-    """SET ps:{org_id}:{request_id}:{token_hash} with TTL."""
-    await self._redis.set(
-      self._token_key(org_id, request_id, token_hash),
-      encrypted_value,
-      ex=ttl_seconds,
-    )
+    expected_dek: bytes | None = None,
+  ) -> bool:
+    """Guard against a writer encrypting with a DEK retired by rotation."""
+    if ttl_seconds <= 0:
+      raise ValueError("Token TTL must be positive")
+    async with self._redis.pipeline(transaction=True) as pipe:
+      try:
+        await pipe.watch(self._dek_key(org_id))
+        if expected_dek is not None and await pipe.get(self._dek_key(org_id)) != expected_dek:
+          return False
+        pipe.multi()
+        pipe.set(self._token_key(org_id, request_id, token_hash), encrypted_value, ex=ttl_seconds)
+        pipe.set(f"ps:revision:{org_id}", uuid.uuid4().hex.encode())
+        # Register in the same transaction: flush/rotation cannot miss a
+        # token because its writer died between SET and SADD.
+        pipe.sadd(self._request_key(org_id, request_id), token_hash)
+        pipe.expire(self._request_key(org_id, request_id), ttl_seconds)
+        await pipe.execute()
+        return True
+      except WatchError:
+        return False
 
   async def retrieve(self, org_id: str, request_id: str, token_hash: str) -> bytes | None:
     """GET ps:{org_id}:{request_id}:{token_hash}. Returns None on miss or expiry."""
@@ -152,50 +169,26 @@ class RedisVaultAdapter(VaultPort):
     return value
 
   async def set_dek_if_absent(self, org_id: str, encrypted_dek: bytes) -> bytes:
-    """
-    Atomically store 'encrypted_dek' only if no DEK exists for 'org_id'.
+    """Atomic create-or-read with WATCH/MULTI; never overwrite a winner.
 
-    Primary path: uses a Redis Lua script for atomic GET-or-SET semantics.
-    The Lua script returns the existing value if present, otherwise stores
-    the new value and returns it. This eliminates the TOCTOU race in
-    multi-instance deployments.
-
-    Fallback path (e.g. test environments with fakeredis without lupa):
-    If Redis EVAL is not supported, falls back to a non-atomic SET NX +
-    GET sequence. This is the same behaviour as Fase 1 (last-writer-wins
-    on first DEK creation for the same org). Acceptable for test environments
-    and single-instance deployments.
-
-    Lua contract: KEYS[1] = dek_key, ARGV[1] = encrypted_dek_bytes
-      Returns: bytes of the stored DEK (either existing or new).
-    """
-    lua_script = """
-    local existing = redis.call('GET', KEYS[1])
-    if existing then
-        return existing
-    else
-        redis.call('SET', KEYS[1], ARGV[1])
-        return ARGV[1]
-    end
+    Bounded contention fails closed. Network/Redis errors propagate; there
+    is no unguarded fallback after losing the watched state.
     """
     key = self._dek_key(org_id)
-    try:
-      result: bytes = await self._redis.eval(lua_script, 1, key, encrypted_dek)
-      return result
-    except Exception:
-      _logger.warning(
-        "set_dek_if_absent: Redis EVAL unavailable for org key %r — "
-        "falling back to non-atomic SET-NX (acceptable for single-instance / test envs)",
-        key,
-      )
-      was_set: bool = await self._redis.setnx(key, encrypted_dek)
-      if was_set:
-        return encrypted_dek
-      existing: bytes | None = await self._redis.get(key)
-      if existing is not None:
-        return existing
-      await self._redis.set(key, encrypted_dek)
-      return encrypted_dek
+    for _ in range(5):
+      async with self._redis.pipeline(transaction=True) as pipe:
+        try:
+          await pipe.watch(key)
+          existing = await pipe.get(key)
+          if existing is not None:
+            return existing
+          pipe.multi()
+          pipe.set(key, encrypted_dek)
+          await pipe.execute()
+          return encrypted_dek
+        except WatchError:
+          continue
+    raise RuntimeError("DEK creation contention")
 
   async def scan_active_token_hashes(self, org_id: str) -> list[tuple[str, str]]:
     """
@@ -260,3 +253,64 @@ class RedisVaultAdapter(VaultPort):
         break
 
     return total
+
+  async def retrieve_batch_with_dek(self, org_id: str, request_id: str, token_hashes: list[str]) -> tuple[bytes | None, dict[str, bytes | None]]:
+    values = await self._redis.mget(self._dek_key(org_id), *[
+      self._token_key(org_id, request_id, h) for h in token_hashes
+    ])
+    return values[0], dict(zip(token_hashes, values[1:]))
+
+  def _rotation_key(self, org_id: str, operation_id: str) -> str:
+    digest = hashlib.sha256(operation_id.encode()).hexdigest()
+    return f"ps:rotation:{org_id}:{digest}"
+
+  async def rotation_result(self, org_id: str, operation_id: str) -> int | None:
+    raw = await self._redis.get(self._rotation_key(org_id, operation_id))
+    return int(raw) if raw is not None else None
+
+  async def snapshot_rotation(self, org_id: str) -> RotationSnapshot:
+    dek, revision = await self._redis.mget(self._dek_key(org_id), f"ps:revision:{org_id}")
+    tokens = {}
+    prefix = f"ps:{org_id}:"
+    async for key in self._redis.scan_iter(match=prefix + "*", count=100):
+      decoded = key.decode() if isinstance(key, bytes) else key
+      request_id, token_hash = decoded[len(prefix):].rsplit(":", 1)
+      value = await self._redis.get(key)
+      if value is not None:
+        tokens[(request_id, token_hash)] = value
+    return RotationSnapshot(dek, revision, tokens)
+
+  async def commit_rotation(self, org_id: str, snapshot: RotationSnapshot, encrypted_dek: bytes, tokens: dict[tuple[str, str], bytes], operation_id: str) -> int | None:
+    dek_key = self._dek_key(org_id)
+    revision_key = f"ps:revision:{org_id}"
+    result_key = self._rotation_key(org_id, operation_id)
+    keys = [self._token_key(org_id, r, h) for r, h in snapshot.tokens]
+    async with self._redis.pipeline(transaction=True) as pipe:
+      try:
+        await pipe.watch(dek_key, revision_key, result_key, *keys)
+        result = await pipe.get(result_key)
+        if result is not None:
+          return int(result)
+        dek, revision = await pipe.mget(dek_key, revision_key)
+        if dek != snapshot.encrypted_dek or revision != snapshot.revision:
+          return None
+        live = []
+        for pair, key in zip(snapshot.tokens, keys):
+          value = await pipe.get(key)
+          if value is None:
+            continue  # expired/flushed: never resurrect
+          if value != snapshot.tokens[pair]:
+            return None
+          if await pipe.pttl(key) < 0:
+            raise RuntimeError("Vault token has no expiry")
+          live.append((key, tokens[pair]))
+        pipe.multi()
+        for key, value in live:
+          pipe.set(key, value, xx=True, keepttl=True)
+        pipe.set(dek_key, encrypted_dek)
+        pipe.set(revision_key, uuid.uuid4().hex.encode())
+        pipe.set(result_key, len(live))
+        await pipe.execute()
+        return len(live)
+      except WatchError:
+        return None

@@ -166,6 +166,10 @@ class TokenizeTextUseCase:
             raise QuotaExceededError(org_id, current_count, self._max_tokens_per_org)
 
         dek = await self._crypto.get_or_create_dek(org_id)
+        encrypted_dek = await self._vault.retrieve_dek(org_id)
+        if encrypted_dek is None:
+            raise RuntimeError("DEK unavailable")
+        dek = self._crypto.decrypt_dek(encrypted_dek)
         detection_result = await self._detection.detect(text)
         fused_spans = fuse_spans(detection_result.spans)
 
@@ -196,6 +200,20 @@ class TokenizeTextUseCase:
             token_str = format_token(span.pii_type, final_hash)
 
             encrypted_value = self._crypto.encrypt(dek, pii_value, associated_data=org_id.encode())
+            for _ in range(5):
+                stored = await self._vault.store(
+                    org_id, request_id, final_hash, encrypted_value, self._token_ttl,
+                    expected_dek=encrypted_dek,
+                )
+                if stored is not False:
+                    break
+                encrypted_dek = await self._vault.retrieve_dek(org_id)
+                if encrypted_dek is None:
+                    raise RuntimeError("DEK unavailable")
+                dek = self._crypto.decrypt_dek(encrypted_dek)
+                encrypted_value = self._crypto.encrypt(dek, pii_value, associated_data=org_id.encode())
+            else:
+                raise RuntimeError("Token storage contention")
             entry = TokenEntry(
                 token=token_str,
                 original=pii_value,
@@ -209,11 +227,6 @@ class TokenizeTextUseCase:
             token_entries.append(entry)
             value_to_entry[pii_value] = entry
 
-            # Persist to vault — include request_id in the key so the entry
-            # is scoped to this request and cannot be rehydrated cross-request.
-            await self._vault.store(
-                org_id, request_id, final_hash, encrypted_value, self._token_ttl
-            )
             # Register under request for flush
             await self._vault.register_request_token(
                 org_id, request_id, final_hash, self._token_ttl

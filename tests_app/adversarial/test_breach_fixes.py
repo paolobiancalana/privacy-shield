@@ -140,7 +140,15 @@ async def _create_key(
         json={"organization_id": org_id, "rate_limit_per_minute": rate_limit},
     )
     assert resp.status_code == 200, f"Key creation failed: {resp.text}"
-    return resp.json()["key"]
+    # The admin API derives limits from plans and ignores the deprecated
+    # request override. Seed only the quota under test, without changing that
+    # production policy or weakening the authorization assertions.
+    from dataclasses import replace
+    raw_key = resp.json()["key"]
+    adapter = client._transport.app.state.container.api_key_port
+    metadata = await adapter.validate_key(hashlib.sha256(raw_key.encode()).hexdigest())
+    await adapter.cache_key(replace(metadata, rate_limit_per_minute=rate_limit))
+    return raw_key
 
 
 def _get_metrics(client_or_container) -> dict:
@@ -1011,8 +1019,8 @@ class TestBreachPerOrgTokenQuota:
         assert err.org_id == "org-test"
         assert err.current == 100
         assert err.limit == 100
-        assert "org-test" in str(err)
-        assert "100" in str(err)
+        assert str(err) == "Organization token quota exceeded"
+        assert "org-test" not in str(err)
 
 
 # ===================================================================

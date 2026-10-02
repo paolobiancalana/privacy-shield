@@ -69,10 +69,13 @@ def mock_vault() -> AsyncMock:
     vault.store = AsyncMock(return_value=None)
     vault.retrieve = AsyncMock(return_value=None)
     vault.retrieve_batch = AsyncMock(return_value={})
+    async def snapshot_read(org_id, request_id, hashes):
+        return b"wrapped_dek", await vault.retrieve_batch(org_id, request_id, hashes)
+    vault.retrieve_batch_with_dek = AsyncMock(side_effect=snapshot_read)
     vault.register_request_token = AsyncMock(return_value=None)
     vault.flush_request = AsyncMock(return_value=0)
     vault.store_dek = AsyncMock(return_value=None)
-    vault.retrieve_dek = AsyncMock(return_value=None)
+    vault.retrieve_dek = AsyncMock(return_value=b"wrapped_dek")
     # T4.3: new VaultPort methods — set_dek_if_absent returns the ARGV[1] bytes
     # (the candidate DEK passed to it) to simulate "first writer wins" behaviour.
     vault.set_dek_if_absent = AsyncMock(side_effect=lambda org_id, enc_dek: enc_dek)

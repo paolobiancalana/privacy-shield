@@ -21,9 +21,9 @@ from app.domain.entities import RehydrateResult
 from app.domain.ports.crypto_port import CryptoPort
 from app.domain.ports.vault_port import VaultPort
 from app.domain.services.token_format import find_all_tokens
-from app.infrastructure.telemetry import get_logger
+import logging
 
-_logger = get_logger("rehydrate_text")
+_logger = logging.getLogger("rehydrate_text")
 
 
 class RehydrateTextUseCase:
@@ -67,7 +67,7 @@ class RehydrateTextUseCase:
 
     unique_hashes = list({h for _, h, _, _ in found_tokens})
 
-    encrypted_map = await self._vault.retrieve_batch(org_id, request_id, unique_hashes)
+    encrypted_dek, encrypted_map = await self._vault.retrieve_batch_with_dek(org_id, request_id, unique_hashes)
 
     any_found = any(v is not None for v in encrypted_map.values())
     if not any_found:
@@ -76,7 +76,9 @@ class RehydrateTextUseCase:
         text=text, rehydrated_count=0, duration_ms=duration_ms
       )
 
-    dek = await self._crypto.get_or_create_dek(org_id)
+    if encrypted_dek is None:
+      raise RuntimeError("Vault ciphertexts exist without a DEK")
+    dek = self._crypto.decrypt_dek(encrypted_dek)
 
     decrypted_map: dict[str, str] = {}
     for hash_hex, encrypted_bytes in encrypted_map.items():

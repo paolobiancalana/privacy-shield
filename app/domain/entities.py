@@ -9,6 +9,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
+class DekNotFoundError(ValueError):
+  """Rotation requested before an organization has a DEK."""
+
+
 class QuotaExceededError(Exception):
   """
   Raised when an organization has reached its per-org token quota.

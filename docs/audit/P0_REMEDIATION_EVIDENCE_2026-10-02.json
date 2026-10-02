@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-02",
+  "repository_base": "f48c2528ded9407176e997c33f4560fe1625d87d",
+  "application_deployed": false,
+  "committed_or_pushed": false,
+  "host_hardening_applied": true,
+  "docker_limits_live": false,
+  "host_reboot_tested": false,
+  "full_suite": {
+    "passed": 795,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 26,
+    "seconds": 48.56
+  },
+  "p0_suite": {
+    "passed": 102,
+    "failed": 0,
+    "warnings": 26,
+    "seconds": 16.73
+  },
+  "crypto_span_regex_gate": {
+    "passed": 57,
+    "failed": 0
+  },
+  "supabase_test_boundary": "Mocked queries and simulated authority; no live tenant mutations",
+  "host_evidence": {
+    "swap_entries": 0,
+    "swapfile_unit": "masked",
+    "kernel_core_pattern": "|/bin/false",
+    "fs_suid_dumpable": 0,
+    "nginx_limit_core": 0,
+    "nginx_active": true,
+    "temp_paths_fs": "tmpfs",
+    "preflight_passed": true,
+    "nginx_config_valid": true,
+    "health_http_status": 200
+  },
+  "file_hashes": {
+    ".github/workflows/ci.yml": "45ab18853df3b7a7ac53afba29f92ad7581a2425a07f46fc7f4ea33a46963f7f",
+    "app/application/rehydrate_text.py": "89e6465f763731db31f5f16ad00f886f0cb1d697db53656600f8e2bef89431ef",
+    "app/application/rotate_dek.py": "aba10955f3aad897923ae7105210da625c3c32f02edcddc75c0c8e7083ac461d",
+    "app/application/tokenize_text.py": "d10b419d32b5feb75a3db5ab8f5dc9c7af5af31010fa87509cfe59329c45a773",
+    "app/container.py": "725c41ea8c12968cb7ddd72f50fa3a50782ab360d15ecbc9c7ec41badf94a8e1",
+    "app/domain/entities.py": "61299daad3606bf38d87abcc5573b5df85b6820aeeb3c14723b89271caf8d599",
+    "app/domain/ports/vault_port.py": "85a5021ee458cb23d9172555ebadb3204249fd891a54cf1da929aba983fb0613",
+    "app/infrastructure/adapters/ner_detection.py": "79b3c83042cdf27224428309b79deefc992bc7c454ad76dbecea9f9d44a93825",
+    "app/infrastructure/adapters/redis_api_key.py": "60c3e6a4b78389ab380a864be5315b5fe3afa7bda90d180f2508e00c61c5d9f4",
+    "app/infrastructure/adapters/redis_vault.py": "3b012e27cb29e3d7040f8f695ee0032992812cc69114501b9a77b44184997156",
+    "app/infrastructure/adapters/supabase_api_key_loader.py": "458434783e310255c112b43bf4885d08095cada13001b8aca1197cfc15dc4e43",
+    "app/infrastructure/api/routes.py": "eb2dfde5bde3b35af44c93d68c24118f0b4aa61bdfd1b2ff3ae59d803c122769",
+    "app/infrastructure/api/schemas.py": "8cc20598947848138f3a30481a40390c7fc5d36d841b1a6af7e0271dba33dc03",
+    "app/infrastructure/config.py": "a5a287fe425e37ab7df9c5febce104a95cad613b3f59c5740a8e690950abedbd",
+    "docker-compose.yml": "e1088b5578fd09778cc7faca1231afa4563e71127b3a1bb55754766dfa6cbfda",
+    "docs/audit/P0_REMEDIATION_2026-10-02.md": "f64a6be965660161bf6dad8ef141f040f7f029566eb35ca43989f0f38b5ec96e",
+    "infra/nginx-pii-memory.conf": "e4c9a594c89db9833d44c3f42b1fe1add8b12bab3267a82ec5ea8a2aa943ccd1",
+    "scripts/check_pii_host.sh": "9db7f7b59676c0ec0a4558f933a5031934f8875b44d82bf8d5f689922a067d62",
+    "scripts/harden_pii_host.sh": "c9cc91ae840b5be67e378c3a393668e708ab21e859d62d4dc067c509cf664810",
+    "tests_app/adversarial/test_breach_fixes.py": "78ffc26c723b84fa1ebbc8078b239b45c5ac5396d52c39bb5a6910777b698b34",
+    "tests_app/application/test_rotate_dek.py": "9ecb19dc5d79e2c1feaa65b95cc4edeef63215e81476a34bda5d67bc3ffb0e6d",
+    "tests_app/conftest.py": "99069a4e40b6f2ac1823952760314af3f0b8d86e8b43dc681208061ae2072548",
+    "tests_app/integration/test_api_key_auth.py": "b7d46a6486b8e14ad74e88676ef43e32266713f2882de5ce8edde04f95bc60ce",
+    "tests_app/security/conftest.py": "1f7df1bc9cc8f49759848ae1c4fcaff3eec4affad41c1e7d9152cba4e437f436",
+    "tests_app/security/test_dek_atomicity.py": "1564f1f36eda9ce97737236c2cf63b086f6a7e4c196db477a2176c33c7323ad2",
+    "tests_app/security/test_key_authority.py": "94cdc6495ecd2715294286937f17b289a6ff9bace27a293db1dce3a3d9cf7c51",
+    "tests_app/security/test_memory_config.py": "bea758b1d0fa17cd0e7557ff9f05893da29bb9d58d21762a5b0a7ec66f3f323f",
+    "tests_app/security/test_ner_windows.py": "ffa910d9f2b5d5280a35adfff219c872573a01cf1e3c085292dffa85b6fc73a2"
+  }
+}

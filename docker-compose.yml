@@ -1,6 +1,5 @@
 # privacy-shield/docker-compose.yml
-# Local development and integration testing stack.
-# Production deploys use Kubernetes (see plans/privacy-shield.md).
+# OVH sovereign-EU production and local integration stack.
 
 version: "3.9"
 
@@ -25,6 +24,12 @@ services:
         condition: service_healthy
     restart: unless-stopped
     # No privileged mode needed — app runs as non-root (uid 1001)
+    mem_limit: 1g
+    memswap_limit: 1g
+    ulimits:
+      core: 0
+    security_opt:
+      - no-new-privileges:true
     read_only: true
     tmpfs:
       - /tmp
@@ -34,10 +39,19 @@ services:
     command: >
       redis-server
       --maxmemory 100mb
-      --maxmemory-policy allkeys-lru
+      --maxmemory-policy volatile-ttl
       --requirepass ${REDIS_PASSWORD:-changeme}
       --save ""
       --appendonly no
+    memswap_limit: 128M
+    ulimits:
+      core: 0
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /data
     # Redis not exposed to host by default — only reachable from privacy-shield service.
     # Uncomment below for local debugging:
     # ports:

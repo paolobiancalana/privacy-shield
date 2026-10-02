@@ -33,6 +33,11 @@ jobs:
           pip install -r requirements-app.txt
           pip install -r requirements-dev.txt
 
+      - name: Install real Redis for isolated P0 acceptance tests
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y redis-server
+
       - name: Run tests
         env:
           PRIVACY_SHIELD_KEK_BASE64: ${{ secrets.TEST_KEK_BASE64 }}

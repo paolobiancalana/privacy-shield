@@ -75,29 +75,38 @@ class NerDetectionAdapter(DetectionPort):
 
         t0 = time.perf_counter()
 
-        # Tokenize
         inputs = self._tokenizer(
-            text, return_offsets_mapping=True,
-            max_length=512, truncation=True, padding=False,
+            text, return_offsets_mapping=True, return_overflowing_tokens=True,
+            max_length=512, stride=128, truncation=True, padding=True,
             return_tensors="np",
         )
-        offset_mapping = inputs.pop("offset_mapping")[0].tolist()
-        word_ids_enc = self._tokenizer(
-            text, max_length=512, truncation=True, padding=False,
-        )
-        word_ids = word_ids_enc.word_ids()
+        raw_entities = []
+        covered_end = 0
+        for window in range(len(inputs["input_ids"])):
+            offsets = inputs["offset_mapping"][window].tolist()
+            content_offsets = [(s, e) for s, e in offsets if e > s]
+            if not content_offsets:
+                raise RuntimeError("NER window has no input coverage")
+            if text[covered_end:content_offsets[0][0]].strip():
+                raise RuntimeError("NER input coverage incomplete")
+            covered_end = max(covered_end, max(e for _, e in content_offsets))
+            logits = self._session.run(
+                ["logits"],
+                {"input_ids": inputs["input_ids"][window:window + 1],
+                 "attention_mask": inputs["attention_mask"][window:window + 1]},
+            )[0]
+            if (logits.shape != (1, len(offsets), len(_NER_LABELS))
+                    or not np.isfinite(logits).all()):
+                raise RuntimeError("Invalid NER inference output")
+            predictions = np.argmax(logits[0], axis=1).tolist()
+            raw_entities.extend(self._reconstruct_spans(
+                text, predictions, offsets, inputs.word_ids(batch_index=window),
+            ))
+        if text[covered_end:].strip():
+            raise RuntimeError("NER input coverage incomplete")
 
-        # Inference
-        logits = self._session.run(
-            ["logits"],
-            {"input_ids": inputs["input_ids"], "attention_mask": inputs["attention_mask"]},
-        )[0]
-        predictions = np.argmax(logits[0], axis=1).tolist()
-
-        # Reconstruct spans
-        raw_entities = self._reconstruct_spans(text, predictions, offset_mapping, word_ids)
-
-        # Trim punctuation
+        # Duplicate/overlapping observations are fused upstream. Preserve
+        # global offsets: tokenizer overflow mappings refer to original text.
         trimmed = self._trim_spans(raw_entities, text)
 
         # Build PiiSpan objects
@@ -112,8 +121,8 @@ class NerDetectionAdapter(DetectionPort):
                     source="slm",
                     confidence=0.85,
                 ))
-            except ValueError:
-                continue  # skip invalid spans
+            except ValueError as exc:
+                raise RuntimeError("Invalid NER span") from exc
 
         detection_ms = (time.perf_counter() - t0) * 1000.0
         return DetectionResult(spans=spans, detection_ms=detection_ms, source="slm")

@@ -135,7 +135,7 @@ class Container:
       )
       adapter = self.api_key_port  # RedisApiKeyAdapter
       for key_meta in keys:
-        await adapter.store_key(key_meta)
+        await adapter.cache_key(key_meta)
       _logger.info(
         "Redis warm-up complete",
         extra={"_ps_operation": "warmup", "_ps_keys_loaded": len(keys)},
@@ -227,7 +227,7 @@ class Container:
 
   @property
   def api_key_port(self) -> ApiKeyPort:
-    """Lazy singleton: Redis-backed API key adapter with Supabase fallback."""
+    """Lazy singleton: Redis-backed API key adapter with authoritative Supabase authentication."""
     if self._api_key_adapter is None:
       self._api_key_adapter = RedisApiKeyAdapter(
         self.redis_client,

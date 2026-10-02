@@ -12,6 +12,15 @@ All entries are TTL-bound (default 60 s) except the DEK key (no TTL — managed 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class RotationSnapshot:
+  encrypted_dek: bytes | None
+  revision: bytes | None
+  tokens: dict[tuple[str, str], bytes]
+
 
 
 class VaultPort(ABC):
@@ -25,7 +34,8 @@ class VaultPort(ABC):
     token_hash: str,
     encrypted_value: bytes,
     ttl_seconds: int,
-  ) -> None:
+    expected_dek: bytes | None = None,
+  ) -> bool:
     """
     Persist one encrypted PII value with a TTL.
 
@@ -163,4 +173,28 @@ class VaultPort(ABC):
     Note: SCAN is non-blocking; this method uses SCAN with MATCH to avoid
     blocking on large keyspaces.
     """
+    ...
+
+  @abstractmethod
+  async def retrieve_batch_with_dek(self, org_id: str, request_id: str, token_hashes: list[str]) -> tuple[bytes | None, dict[str, bytes | None]]:
+    """One atomic read of ciphertexts and their matching encrypted DEK."""
+    ...
+
+  @abstractmethod
+  async def snapshot_rotation(self, org_id: str) -> RotationSnapshot:
+    """Capture revision BEFORE scanning all token keys (including unindexed ones)."""
+    ...
+
+  @abstractmethod
+  async def commit_rotation(self, org_id: str, snapshot: RotationSnapshot, encrypted_dek: bytes, tokens: dict[tuple[str, str], bytes], operation_id: str) -> int | None:
+    """CAS all ciphertexts + DEK together, preserving expiry. None means retry.
+
+    A repeated operation_id returns the original committed count. No partial
+    writes on concurrency conflicts or a disconnect before EXEC.
+    """
+    ...
+
+  @abstractmethod
+  async def rotation_result(self, org_id: str, operation_id: str) -> int | None:
+    """Committed result, retained until Redis resets (non-evictable, same lifecycle as vault)."""
     ...

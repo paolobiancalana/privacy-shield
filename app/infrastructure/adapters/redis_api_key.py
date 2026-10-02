@@ -125,7 +125,13 @@ return 1
     return int(self._decode_bytes(value))
 
   async def store_key(self, metadata: ApiKeyMetadata) -> None:
-    """Persist metadata JSON and add the hash to the global index SET."""
+    """Persist new runtime keys to the authority before caching them."""
+    if self._supabase_loader is not None:
+      await asyncio.to_thread(self._supabase_loader.register_key, metadata)
+    await self.cache_key(metadata)
+
+  async def cache_key(self, metadata: ApiKeyMetadata) -> None:
+    """Warm-up only: never writes/re-activates rows in the authority."""
     data = json.dumps(self._metadata_to_dict(metadata)).encode("utf-8")
     pipe = self._redis.pipeline(transaction=False)
     pipe.set(self._metadata_key(metadata.key_hash), data)
@@ -133,40 +139,36 @@ return 1
     await pipe.execute()
 
   async def validate_key(self, key_hash: str) -> ApiKeyMetadata | None:
-    """
-    Return metadata for an active key, or None if missing/revoked.
+    """Authorize from Supabase on every call; Redis-only mode is standalone.
 
-    Cache-aside fallback: if key is absent from Redis (e.g. after a Redis
-    restart or a key created after the last warm-up), transparently fetches
-    it from Supabase and repopulates Redis so subsequent requests hit cache.
+    Source deletion, revocation, expiry and outages cannot be bypassed by
+    a warm Redis entry. Already-authorized in-flight calls are not cancelled.
     """
-    raw = await self._redis.get(self._metadata_key(key_hash))
-    if raw is not None:
-      data = json.loads(self._decode_bytes(raw))
-      if not data.get("active", False):
+    # Supabase is the authority on EVERY authorization decision. Redis is
+    # never a positive authorization cache when the control plane is present.
+    if self._supabase_loader is not None:
+      metadata = await asyncio.to_thread(self._supabase_loader.load_by_hash, key_hash)
+      if metadata is None:
+        await self._redis.delete(self._metadata_key(key_hash))
         return None
-      return ApiKeyMetadata(**data)
+      return metadata
 
-    # Cache miss — try Supabase fallback if loader is configured
-    if self._supabase_loader is None:
+    raw = await self._redis.get(self._metadata_key(key_hash))
+    if raw is None:
       return None
-
-    try:
-      metadata = await asyncio.get_event_loop().run_in_executor(
-        None, self._supabase_loader.load_by_hash, key_hash
-      )
-    except Exception:
+    data = json.loads(self._decode_bytes(raw))
+    if not data.get("active", False):
       return None
-
-    if metadata is None:
-      return None
-
-    # Repopulate Redis so future requests hit cache
-    await self.store_key(metadata)
-    return metadata
+    return ApiKeyMetadata(**data)
 
   async def revoke_key(self, key_hash: str) -> bool:
     """Set active=False in the stored metadata. Returns False if not found."""
+    if self._supabase_loader is not None:
+      # Persist revocation before invalidating the volatile copy. A restart,
+      # eviction or warm-up cannot resurrect a revoked key.
+      revoked = await asyncio.to_thread(self._supabase_loader.revoke_by_hash, key_hash)
+      await self._redis.delete(self._metadata_key(key_hash))
+      return revoked
     raw = await self._redis.get(self._metadata_key(key_hash))
     if raw is None:
       return False
@@ -269,7 +271,7 @@ return 1
         metadata_json,
         metadata.key_hash,
       )
-      return int(result) == 1
+      stored = int(result) == 1
     except Exception:
       # Fallback: non-atomic (fakeredis in tests may not support eval)
       active = await self.count_active_keys(metadata.org_id)
@@ -277,6 +279,14 @@ return 1
         return False
       await self.store_key(metadata)
       return True
+    if stored and self._supabase_loader is not None:
+      try:
+        await asyncio.to_thread(self._supabase_loader.register_key, metadata)
+      except Exception:
+        await self._redis.delete(self._metadata_key(metadata.key_hash))
+        await self._redis.srem(self._APIKEYS_INDEX, metadata.key_hash)
+        raise
+    return stored
 
   async def increment_and_check_monthly_tokens(
     self, org_id: str, token_count: int, limit: int

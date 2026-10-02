@@ -143,6 +143,9 @@ class FlushResponse(BaseModel):
 class RotateDekRequest(BaseModel):
   """Request body for POST /api/v1/rotate-dek."""
 
+  operation_id: str | None = Field(None, min_length=1, max_length=128,
+    description="Reuse this ID on retries; result retained until the volatile vault resets.")
+
   organization_id: str = Field(
     ...,
     description="UUID of the organization whose DEK should be rotated.",

@@ -31,6 +31,7 @@ from app.application.flush_request import FlushRequestUseCase
 from app.application.provision_org import ProvisionOrgUseCase
 from app.application.rehydrate_text import RehydrateTextUseCase
 from app.application.rotate_dek import RotateDekUseCase
+from app.domain.entities import DekNotFoundError
 from app.application.tokenize_text import TokenizeTextUseCase
 from app.domain.entities import (
   MaxKeysExceededError,
@@ -351,8 +352,8 @@ async def rotate_dek(
 
   Generates a new DEK, re-encrypts all active vault entries under it,
   and stores the new encrypted DEK in Redis. The operation is safe to
-  retry — partial rotations re-encrypt the remaining entries on the
-  next call.
+  retry with the same operation_id while Redis remains available.
+  Ciphertexts and DEK are committed together.
 
   Returns the number of vault entries that were re-encrypted.
 
@@ -363,8 +364,8 @@ async def rotate_dek(
   t0 = time.perf_counter()
 
   try:
-    result = await use_case.execute(org_id=body.organization_id)
-  except ValueError as exc:
+    result = await use_case.execute(org_id=body.organization_id, operation_id=body.operation_id)
+  except DekNotFoundError as exc:
     log_error(
       _logger,
       operation="rotate_dek",
