@@ -29,10 +29,10 @@ function getCurrentMonthStart(): string {
 
 async function syncLiveUsage(orgId: string) {
   try {
-    const runtimeUrl = process.env.PS_RUNTIME_URL;
+    const runtimeUrl = process.env.PS_RUNTIME_URL || "https://api.privacyshield.pro";
     const adminKey = process.env.PS_ADMIN_KEY || process.env.ADMIN_API_KEY;
 
-    if (!runtimeUrl || !adminKey) {
+    if (!adminKey) {
       return;
     }
 
