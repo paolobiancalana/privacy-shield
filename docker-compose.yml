@@ -22,6 +22,11 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     restart: unless-stopped
     # No privileged mode needed — app runs as non-root (uid 1001)
     mem_limit: 1g

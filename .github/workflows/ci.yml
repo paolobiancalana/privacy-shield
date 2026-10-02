@@ -61,32 +61,17 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - name: Deploy to OVH VPS
+      - uses: actions/checkout@v4
+      - name: Deploy exact tested release to OVH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: paolo
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 20m
           script: |
+            set -eu
             cd ~/privacy-shield
-            git pull origin main
-            docker compose up -d --build
-            sleep 5
-
-      - name: Smoke test
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: paolo
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            STATUS=$(curl -sf http://127.0.0.1:8000/health | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
-            if [ "$STATUS" != "healthy" ]; then
-              echo "SMOKE TEST FAILED: status=$STATUS"
-              echo "Rolling back..."
-              cd ~/privacy-shield
-              git checkout HEAD~1
-              docker compose up -d --build
-              exit 1
-            fi
-            echo "Smoke test passed: status=healthy"
+            git fetch origin main
+            git show ${{ github.sha }}:scripts/deploy-release.sh > /tmp/privacyshield-deploy-${{ github.sha }}.sh
+            bash /tmp/privacyshield-deploy-${{ github.sha }}.sh ${{ github.sha }}

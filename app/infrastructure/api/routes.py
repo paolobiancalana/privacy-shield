@@ -885,6 +885,38 @@ async def health(container=Depends(_get_container)) -> JSONResponse:
   return JSONResponse(status_code=http_status, content=response_body.model_dump())
 
 
+@router.get("/ready", summary="Operational readiness including actual NER and key authority")
+async def ready(container=Depends(_get_container)) -> JSONResponse:
+  import asyncio
+  import json
+
+  base = await health(container)
+  payload = json.loads(base.body)
+  ready_ok = base.status_code == 200
+  try:
+    # Fictional fixed probe; never uses customer input. Requires actual
+    # inference, not merely the presence of a model file or adapter.
+    detection = await container.detection_port.detect("Il signor Mario Rossi abita a Roma.")
+    slm_up = any("Mario Rossi" in span.text for span in detection.spans)
+  except Exception:
+    slm_up = False
+  payload["components"]["slm"] = {"status": "up" if slm_up else "down"}
+  source = container._supabase_loader
+  if source is None:
+    auth_up = True
+    auth_status = "standalone"
+  else:
+    try:
+      auth_up = await asyncio.to_thread(source.check_available)
+    except Exception:
+      auth_up = False
+    auth_status = "up" if auth_up else "down"
+  payload["components"]["auth"] = {"status": auth_status}
+  ready_ok = ready_ok and slm_up and auth_up
+  payload["status"] = "ready" if ready_ok else "not_ready"
+  return JSONResponse(status_code=200 if ready_ok else 503, content=payload)
+
+
 @router.get(
   "/metrics",
   summary="In-memory metrics snapshot (admin-only)",

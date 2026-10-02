@@ -80,7 +80,7 @@ class SupabaseApiKeyLoader:
                 environment=row.get("environment", "live"),
             )
         except Exception as exc:
-            _logger.warning("Failed to parse API key row: %s", exc, extra={"row_id": row.get("id")})
+            _logger.warning("Failed to parse API key row: %s", type(exc).__name__, extra={"row_id": row.get("id")})
             return None
 
     def load_all_active(self) -> list[ApiKeyMetadata]:
@@ -114,7 +114,7 @@ class SupabaseApiKeyLoader:
         except Exception as exc:
             _logger.error(
                 "Failed to load API keys from Supabase during warm-up: %s",
-                exc,
+                type(exc).__name__,
                 extra={"_ps_operation": "warmup"},
             )
             return []
@@ -145,7 +145,7 @@ class SupabaseApiKeyLoader:
             _logger.warning(
                 "Supabase fallback lookup failed for key_hash=%s: %s",
                 key_hash[:8],
-                exc,
+                type(exc).__name__,
                 extra={"_ps_operation": "cache_aside"},
             )
             return None
@@ -171,3 +171,11 @@ class SupabaseApiKeyLoader:
         }).execute())
         if not response.data:
             raise RuntimeError("API key authority insert failed")
+
+    def check_available(self) -> bool:
+        """Read-only readiness probe; a missing key is not a connectivity test."""
+        try:
+            self._client.table("ps_api_keys").select("id").limit(1).execute()
+            return True
+        except Exception:
+            return False

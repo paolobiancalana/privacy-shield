@@ -34,7 +34,10 @@ class _JsonFormatter(logging.Formatter):
                 payload[key[4:]] = value  # strip "_ps_" prefix
 
         if record.exc_info:
-            payload["exception"] = self.formatException(record.exc_info)
+            # Exception text, chained causes and traceback source lines can
+            # contain request bodies/PII. Keep only the failure category.
+            payload["message"] = "operation_failed"
+            payload["exception_type"] = record.exc_info[0].__name__
 
         return json.dumps(payload, default=str)
 

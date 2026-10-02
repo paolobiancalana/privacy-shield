@@ -2,22 +2,27 @@
 # Python 3.12+ required
 
 # Web framework
-fastapi>=0.115.0
-uvicorn[standard]>=0.34.0
+fastapi==0.139.0
+uvicorn[standard]==0.41.0
 
 # Redis async client with hiredis C parser for performance
-redis[hiredis]>=5.2.0
+redis[hiredis]==5.2.1
 
 # Data validation and settings
-pydantic>=2.10.0
-pydantic-settings>=2.7.0
+pydantic==2.12.5
+pydantic-settings==2.13.1
 
 # AES-256-GCM authenticated encryption (PyCA, NOT PyCryptodome)
-cryptography>=44.0.0
+cryptography==45.0.7
 
 # NER inference (ONNX Runtime, no PyTorch needed)
-onnxruntime>=1.17.0
-transformers>=4.40.0
+onnxruntime==1.24.3
+transformers==5.3.0
 
 # Supabase client — used for warm-up on startup (load API keys from Postgres to Redis)
-supabase>=2.10.0
+supabase==2.25.0
+
+# Tokenizer/array stack validated against the deployed ONNX model.
+tokenizers==0.22.1
+huggingface-hub==1.7.1
+numpy==2.4.3
