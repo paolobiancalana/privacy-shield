@@ -1,0 +1,3919 @@
+{
+  "limitations": [
+    "54 curated synthetic cases; no population inference",
+    "No parsing/compilation or tokenization/vault roundtrip tested",
+    "Concatenated entities use multiple source ranges; exact metrics score segments",
+    "No training-corpus disjointness verified; keep these fixtures out of training"
+  ],
+  "commit": "a6cf4041942f3313a8070f2005e333e4b92715cc",
+  "python": "3.12.8",
+  "packages": {
+    "transformers": "5.3.0",
+    "tokenizers": "0.22.1",
+    "onnxruntime": "1.24.3",
+    "numpy": "2.4.3"
+  },
+  "corpus_sha256": "2a992e7c77f8e0f37a0f8b9ba0c627816d7e26a2bf7ca7a2cdb7229e78b0cb56",
+  "model_sha256": "b3b54f42c79b7a1b64823946998f91e2502ac60c602f8465e0515efe01264627",
+  "results": {
+    "regex": {
+      "summary": {
+        "cases": 54,
+        "entities": 51,
+        "fully_covered": 12,
+        "coverage_rate": 0.23529411764705882,
+        "cases_with_leaks": 33,
+        "exposed_characters": 480,
+        "required_characters": 705,
+        "negative_cases": 12,
+        "false_positive_negative_cases": 0,
+        "errors": 0
+      },
+      "by_language": {
+        "java": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 4,
+          "coverage_rate": 0.23529411764705882,
+          "cases_with_leaks": 11,
+          "exposed_characters": 160,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "javascript": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 4,
+          "coverage_rate": 0.23529411764705882,
+          "cases_with_leaks": 11,
+          "exposed_characters": 160,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "python": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 4,
+          "coverage_rate": 0.23529411764705882,
+          "cases_with_leaks": 11,
+          "exposed_characters": 160,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        }
+      },
+      "by_scenario": {
+        "address": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 48,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "cf": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "comment": {
+          "cases": 3,
+          "entities": 9,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 75,
+          "required_characters": 75,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "concatenated": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 30,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "email": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 69,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "email-concatenated": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 69,
+          "required_characters": 69,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "escaped": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 48,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "long-tail": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 30,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-0": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 30,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-1": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 39,
+          "required_characters": 39,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-2": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 33,
+          "required_characters": 33,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-3": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 48,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-0": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-1": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-2": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-3": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "phone": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 39,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "structure": {
+          "cases": 3,
+          "entities": 6,
+          "fully_covered": 3,
+          "coverage_rate": 0.5,
+          "cases_with_leaks": 3,
+          "exposed_characters": 30,
+          "required_characters": 99,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        }
+      },
+      "source_segment_metrics": {
+        "exact_match": {
+          "precision": 1.0,
+          "recall": 0.21052631578947367,
+          "f1": 0.34782608695652173,
+          "support": 57
+        },
+        "partial_match": {
+          "precision": 1.0,
+          "recall": 0.21052631578947367,
+          "f1": 0.34782608695652173,
+          "support": 57
+        },
+        "per_type": {
+          "cf": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "em": {
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "support": 12
+          },
+          "ind": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 6
+          },
+          "loc": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "pe": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 30
+          },
+          "tel": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "json_validity_rate": 1.0,
+        "fp_rate_hard_negatives": 0.0,
+        "confusion_matrix": {
+          "pe": {
+            "MISS": 30
+          },
+          "em": {
+            "em": 6,
+            "MISS": 6
+          },
+          "ind": {
+            "MISS": 6
+          },
+          "tel": {
+            "tel": 3
+          },
+          "cf": {
+            "cf": 3
+          },
+          "loc": {
+            "MISS": 3
+          }
+        },
+        "total_predictions": 12,
+        "total_gold": 57,
+        "total_examples": 54
+      },
+      "cases": [
+        {
+          "id": "python-name-0",
+          "language": "python",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.05,
+          "predictions": []
+        },
+        {
+          "id": "python-name-1",
+          "language": "python",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 13,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "python-name-2",
+          "language": "python",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 11,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "python-name-3",
+          "language": "python",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "python-email",
+          "language": "python",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": [
+            {
+              "s": 9,
+              "e": 32,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "python-address",
+          "language": "python",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "python-phone",
+          "language": "python",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": [
+            {
+              "s": 9,
+              "e": 24,
+              "y": "tel",
+              "t": "+39 333 1234567"
+            }
+          ]
+        },
+        {
+          "id": "python-cf",
+          "language": "python",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": [
+            {
+              "s": 11,
+              "e": 27,
+              "y": "cf",
+              "t": "RSSMRA85M01H501Z"
+            }
+          ]
+        },
+        {
+          "id": "python-comment",
+          "language": "python",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 0,
+          "exposed_characters": 25,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "python-escaped",
+          "language": "python",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "python-concatenated",
+          "language": "python",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "python-email-concatenated",
+          "language": "python",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 23,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "python-structure",
+          "language": "python",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 1,
+          "exposed_characters": 10,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.03,
+          "predictions": [
+            {
+              "s": 49,
+              "e": 72,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "python-long-tail",
+          "language": "python",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 2.36,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-0",
+          "language": "python",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-1",
+          "language": "python",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-2",
+          "language": "python",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-3",
+          "language": "python",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-name-0",
+          "language": "javascript",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-name-1",
+          "language": "javascript",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 13,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "javascript-name-2",
+          "language": "javascript",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 11,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-name-3",
+          "language": "javascript",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-email",
+          "language": "javascript",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": [
+            {
+              "s": 15,
+              "e": 38,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "javascript-address",
+          "language": "javascript",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "javascript-phone",
+          "language": "javascript",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": [
+            {
+              "s": 15,
+              "e": 30,
+              "y": "tel",
+              "t": "+39 333 1234567"
+            }
+          ]
+        },
+        {
+          "id": "javascript-cf",
+          "language": "javascript",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": [
+            {
+              "s": 17,
+              "e": 33,
+              "y": "cf",
+              "t": "RSSMRA85M01H501Z"
+            }
+          ]
+        },
+        {
+          "id": "javascript-comment",
+          "language": "javascript",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 0,
+          "exposed_characters": 25,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "javascript-escaped",
+          "language": "javascript",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-concatenated",
+          "language": "javascript",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-email-concatenated",
+          "language": "javascript",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 23,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "javascript-structure",
+          "language": "javascript",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 1,
+          "exposed_characters": 10,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.03,
+          "predictions": [
+            {
+              "s": 51,
+              "e": 74,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "javascript-long-tail",
+          "language": "javascript",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 2.46,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-0",
+          "language": "javascript",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-1",
+          "language": "javascript",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-2",
+          "language": "javascript",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-3",
+          "language": "javascript",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-name-0",
+          "language": "java",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-name-1",
+          "language": "java",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 13,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-name-2",
+          "language": "java",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 11,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-name-3",
+          "language": "java",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-email",
+          "language": "java",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": [
+            {
+              "s": 16,
+              "e": 39,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "java-address",
+          "language": "java",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "java-phone",
+          "language": "java",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": [
+            {
+              "s": 16,
+              "e": 31,
+              "y": "tel",
+              "t": "+39 333 1234567"
+            }
+          ]
+        },
+        {
+          "id": "java-cf",
+          "language": "java",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 34,
+              "y": "cf",
+              "t": "RSSMRA85M01H501Z"
+            }
+          ]
+        },
+        {
+          "id": "java-comment",
+          "language": "java",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 0,
+          "exposed_characters": 25,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "java-escaped",
+          "language": "java",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-concatenated",
+          "language": "java",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-email-concatenated",
+          "language": "java",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 23,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.02,
+          "predictions": []
+        },
+        {
+          "id": "java-structure",
+          "language": "java",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 1,
+          "exposed_characters": 10,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 0.03,
+          "predictions": [
+            {
+              "s": 49,
+              "e": 72,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "java-long-tail",
+          "language": "java",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 10,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 2.53,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-0",
+          "language": "java",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-1",
+          "language": "java",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-2",
+          "language": "java",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-3",
+          "language": "java",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 0.01,
+          "predictions": []
+        }
+      ]
+    },
+    "ner": {
+      "summary": {
+        "cases": 54,
+        "entities": 51,
+        "fully_covered": 30,
+        "coverage_rate": 0.5882352941176471,
+        "cases_with_leaks": 21,
+        "exposed_characters": 297,
+        "required_characters": 705,
+        "negative_cases": 12,
+        "false_positive_negative_cases": 0,
+        "errors": 0
+      },
+      "by_language": {
+        "java": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 10,
+          "coverage_rate": 0.5882352941176471,
+          "cases_with_leaks": 7,
+          "exposed_characters": 94,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "javascript": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 10,
+          "coverage_rate": 0.5882352941176471,
+          "cases_with_leaks": 7,
+          "exposed_characters": 94,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "python": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 10,
+          "coverage_rate": 0.5882352941176471,
+          "cases_with_leaks": 7,
+          "exposed_characters": 109,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        }
+      },
+      "by_scenario": {
+        "address": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 1,
+          "coverage_rate": 0.3333333333333333,
+          "cases_with_leaks": 2,
+          "exposed_characters": 2,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "cf": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 48,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "comment": {
+          "cases": 3,
+          "entities": 9,
+          "fully_covered": 6,
+          "coverage_rate": 0.6666666666666666,
+          "cases_with_leaks": 3,
+          "exposed_characters": 18,
+          "required_characters": 75,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "concatenated": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "email": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 69,
+          "required_characters": 69,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "email-concatenated": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 36,
+          "required_characters": 69,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "escaped": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 2,
+          "coverage_rate": 0.6666666666666666,
+          "cases_with_leaks": 1,
+          "exposed_characters": 16,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "long-tail": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-0": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-1": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 39,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-2": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 33,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-3": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-0": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-1": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-2": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-3": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "phone": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 39,
+          "required_characters": 39,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "structure": {
+          "cases": 3,
+          "entities": 6,
+          "fully_covered": 3,
+          "coverage_rate": 0.5,
+          "cases_with_leaks": 3,
+          "exposed_characters": 69,
+          "required_characters": 99,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        }
+      },
+      "source_segment_metrics": {
+        "exact_match": {
+          "precision": 0.627906976744186,
+          "recall": 0.47368421052631576,
+          "f1": 0.5399999999999999,
+          "support": 57
+        },
+        "partial_match": {
+          "precision": 0.7906976744186046,
+          "recall": 0.5964912280701754,
+          "f1": 0.6799999999999999,
+          "support": 57
+        },
+        "per_type": {
+          "cf": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "em": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 12
+          },
+          "ind": {
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666,
+            "support": 6
+          },
+          "loc": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "pe": {
+            "precision": 0.6571428571428571,
+            "recall": 0.7666666666666667,
+            "f1": 0.7076923076923077,
+            "support": 30
+          },
+          "tel": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          }
+        },
+        "json_validity_rate": 1.0,
+        "fp_rate_hard_negatives": 0.0,
+        "confusion_matrix": {
+          "pe": {
+            "pe": 28,
+            "MISS": 2
+          },
+          "SPURIOUS": {
+            "pe": 4,
+            "loc": 2
+          },
+          "em": {
+            "MISS": 9,
+            "pe": 3
+          },
+          "ind": {
+            "ind": 6
+          },
+          "tel": {
+            "MISS": 3
+          },
+          "cf": {
+            "MISS": 3
+          },
+          "loc": {
+            "MISS": 3
+          }
+        },
+        "total_predictions": 43,
+        "total_gold": 57,
+        "total_examples": 54
+      },
+      "cases": [
+        {
+          "id": "python-name-0",
+          "language": "python",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 5.19,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 23,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-name-1",
+          "language": "python",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.66,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 26,
+              "y": "pe",
+              "t": "Giulia Bianchi"
+            }
+          ]
+        },
+        {
+          "id": "python-name-2",
+          "language": "python",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.12,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 24,
+              "y": "pe",
+              "t": "Samir Haddad"
+            }
+          ]
+        },
+        {
+          "id": "python-name-3",
+          "language": "python",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.63,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 22,
+              "y": "pe",
+              "t": "Anne-Marie"
+            },
+            {
+              "s": 23,
+              "e": 29,
+              "y": "pe",
+              "t": "Dubois"
+            }
+          ]
+        },
+        {
+          "id": "python-email",
+          "language": "python",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 23,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.23,
+          "predictions": []
+        },
+        {
+          "id": "python-address",
+          "language": "python",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.02,
+          "predictions": [
+            {
+              "s": 11,
+              "e": 30,
+              "y": "ind",
+              "t": "Via Roma 10, Milano"
+            }
+          ]
+        },
+        {
+          "id": "python-phone",
+          "language": "python",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 13,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.08,
+          "predictions": []
+        },
+        {
+          "id": "python-cf",
+          "language": "python",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.68,
+          "predictions": []
+        },
+        {
+          "id": "python-comment",
+          "language": "python",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 2,
+          "exposed_characters": 6,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.66,
+          "predictions": [
+            {
+              "s": 13,
+              "e": 24,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 34,
+              "e": 45,
+              "y": "ind",
+              "t": "Via Roma 10"
+            }
+          ]
+        },
+        {
+          "id": "python-escaped",
+          "language": "python",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.59,
+          "predictions": []
+        },
+        {
+          "id": "python-concatenated",
+          "language": "python",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.1,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 17,
+              "y": "pe",
+              "t": "Mario"
+            },
+            {
+              "s": 23,
+              "e": 28,
+              "y": "pe",
+              "t": "Rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-email-concatenated",
+          "language": "python",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 12,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.18,
+          "predictions": [
+            {
+              "s": 9,
+              "e": 20,
+              "y": "pe",
+              "t": "mario.rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-structure",
+          "language": "python",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 1,
+          "exposed_characters": 23,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 5.52,
+          "predictions": [
+            {
+              "s": 25,
+              "e": 36,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-long-tail",
+          "language": "python",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 502.28,
+          "predictions": [
+            {
+              "s": 9988,
+              "e": 9999,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-negative-0",
+          "language": "python",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 2.78,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-1",
+          "language": "python",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 2.56,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-2",
+          "language": "python",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 2.44,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-3",
+          "language": "python",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.23,
+          "predictions": []
+        },
+        {
+          "id": "javascript-name-0",
+          "language": "javascript",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 2.68,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 29,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-name-1",
+          "language": "javascript",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.19,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 32,
+              "y": "pe",
+              "t": "Giulia Bianchi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-name-2",
+          "language": "javascript",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.19,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 30,
+              "y": "pe",
+              "t": "Samir Haddad"
+            }
+          ]
+        },
+        {
+          "id": "javascript-name-3",
+          "language": "javascript",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.73,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 35,
+              "y": "pe",
+              "t": "Anne-Marie Dubois"
+            }
+          ]
+        },
+        {
+          "id": "javascript-email",
+          "language": "javascript",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 23,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.82,
+          "predictions": []
+        },
+        {
+          "id": "javascript-address",
+          "language": "javascript",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 1,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.16,
+          "predictions": [
+            {
+              "s": 17,
+              "e": 28,
+              "y": "ind",
+              "t": "Via Roma 10"
+            },
+            {
+              "s": 30,
+              "e": 36,
+              "y": "loc",
+              "t": "Milano"
+            }
+          ]
+        },
+        {
+          "id": "javascript-phone",
+          "language": "javascript",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 13,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.6,
+          "predictions": []
+        },
+        {
+          "id": "javascript-cf",
+          "language": "javascript",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.2,
+          "predictions": []
+        },
+        {
+          "id": "javascript-comment",
+          "language": "javascript",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 2,
+          "exposed_characters": 6,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.74,
+          "predictions": [
+            {
+              "s": 14,
+              "e": 25,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 35,
+              "e": 46,
+              "y": "ind",
+              "t": "Via Roma 10"
+            }
+          ]
+        },
+        {
+          "id": "javascript-escaped",
+          "language": "javascript",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.71,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 34,
+              "y": "pe",
+              "t": "Mario\\u0020Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-concatenated",
+          "language": "javascript",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.67,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 23,
+              "y": "pe",
+              "t": "Mario"
+            },
+            {
+              "s": 29,
+              "e": 34,
+              "y": "pe",
+              "t": "Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-email-concatenated",
+          "language": "javascript",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 12,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.34,
+          "predictions": [
+            {
+              "s": 15,
+              "e": 26,
+              "y": "pe",
+              "t": "mario.rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-structure",
+          "language": "javascript",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 1,
+          "exposed_characters": 23,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 5.96,
+          "predictions": [
+            {
+              "s": 29,
+              "e": 34,
+              "y": "pe",
+              "t": "Mario"
+            },
+            {
+              "s": 35,
+              "e": 40,
+              "y": "pe",
+              "t": "Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-long-tail",
+          "language": "javascript",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 496.81,
+          "predictions": [
+            {
+              "s": 9987,
+              "e": 9998,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-negative-0",
+          "language": "javascript",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.45,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-1",
+          "language": "javascript",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.2,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-2",
+          "language": "javascript",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.02,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-3",
+          "language": "javascript",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.22,
+          "predictions": []
+        },
+        {
+          "id": "java-name-0",
+          "language": "java",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 2.78,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 30,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-name-1",
+          "language": "java",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.3,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 33,
+              "y": "pe",
+              "t": "Giulia Bianchi"
+            }
+          ]
+        },
+        {
+          "id": "java-name-2",
+          "language": "java",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.16,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 31,
+              "y": "pe",
+              "t": "Samir Haddad"
+            }
+          ]
+        },
+        {
+          "id": "java-name-3",
+          "language": "java",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.71,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 29,
+              "y": "pe",
+              "t": "Anne-Marie"
+            },
+            {
+              "s": 30,
+              "e": 36,
+              "y": "pe",
+              "t": "Dubois"
+            }
+          ]
+        },
+        {
+          "id": "java-email",
+          "language": "java",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 23,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.75,
+          "predictions": []
+        },
+        {
+          "id": "java-address",
+          "language": "java",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 1,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.09,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 29,
+              "y": "ind",
+              "t": "Via Roma 10"
+            },
+            {
+              "s": 31,
+              "e": 37,
+              "y": "loc",
+              "t": "Milano"
+            }
+          ]
+        },
+        {
+          "id": "java-phone",
+          "language": "java",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 13,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.66,
+          "predictions": []
+        },
+        {
+          "id": "java-cf",
+          "language": "java",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.23,
+          "predictions": []
+        },
+        {
+          "id": "java-comment",
+          "language": "java",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 2,
+          "exposed_characters": 6,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.65,
+          "predictions": [
+            {
+              "s": 14,
+              "e": 25,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 35,
+              "e": 46,
+              "y": "ind",
+              "t": "Via Roma 10"
+            }
+          ]
+        },
+        {
+          "id": "java-escaped",
+          "language": "java",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.62,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 35,
+              "y": "pe",
+              "t": "Mario\\u0020Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-concatenated",
+          "language": "java",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.66,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 24,
+              "y": "pe",
+              "t": "Mario"
+            },
+            {
+              "s": 30,
+              "e": 35,
+              "y": "pe",
+              "t": "Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-email-concatenated",
+          "language": "java",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 12,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.31,
+          "predictions": [
+            {
+              "s": 16,
+              "e": 27,
+              "y": "pe",
+              "t": "mario.rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-structure",
+          "language": "java",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 1,
+          "exposed_characters": 23,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.95,
+          "predictions": [
+            {
+              "s": 34,
+              "e": 45,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-long-tail",
+          "language": "java",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 497.75,
+          "predictions": [
+            {
+              "s": 9987,
+              "e": 9998,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-negative-0",
+          "language": "java",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.3,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-1",
+          "language": "java",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.06,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-2",
+          "language": "java",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.04,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-3",
+          "language": "java",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.21,
+          "predictions": []
+        }
+      ]
+    },
+    "composite": {
+      "summary": {
+        "cases": 54,
+        "entities": 51,
+        "fully_covered": 42,
+        "coverage_rate": 0.8235294117647058,
+        "cases_with_leaks": 9,
+        "exposed_characters": 72,
+        "required_characters": 705,
+        "negative_cases": 12,
+        "false_positive_negative_cases": 0,
+        "errors": 0
+      },
+      "by_language": {
+        "java": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 14,
+          "coverage_rate": 0.8235294117647058,
+          "cases_with_leaks": 3,
+          "exposed_characters": 19,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "javascript": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 14,
+          "coverage_rate": 0.8235294117647058,
+          "cases_with_leaks": 3,
+          "exposed_characters": 19,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "python": {
+          "cases": 18,
+          "entities": 17,
+          "fully_covered": 14,
+          "coverage_rate": 0.8235294117647058,
+          "cases_with_leaks": 3,
+          "exposed_characters": 34,
+          "required_characters": 235,
+          "negative_cases": 4,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        }
+      },
+      "by_scenario": {
+        "address": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 1,
+          "coverage_rate": 0.3333333333333333,
+          "cases_with_leaks": 2,
+          "exposed_characters": 2,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "cf": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "comment": {
+          "cases": 3,
+          "entities": 9,
+          "fully_covered": 6,
+          "coverage_rate": 0.6666666666666666,
+          "cases_with_leaks": 3,
+          "exposed_characters": 18,
+          "required_characters": 75,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "concatenated": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "email": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 69,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "email-concatenated": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 0,
+          "coverage_rate": 0.0,
+          "cases_with_leaks": 3,
+          "exposed_characters": 36,
+          "required_characters": 69,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "escaped": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 2,
+          "coverage_rate": 0.6666666666666666,
+          "cases_with_leaks": 1,
+          "exposed_characters": 16,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "long-tail": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-0": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 30,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-1": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 39,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-2": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 33,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "name-3": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 48,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-0": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-1": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-2": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "negative-3": {
+          "cases": 3,
+          "entities": 0,
+          "fully_covered": 0,
+          "coverage_rate": null,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative_cases": 3,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "phone": {
+          "cases": 3,
+          "entities": 3,
+          "fully_covered": 3,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 39,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        },
+        "structure": {
+          "cases": 3,
+          "entities": 6,
+          "fully_covered": 6,
+          "coverage_rate": 1.0,
+          "cases_with_leaks": 0,
+          "exposed_characters": 0,
+          "required_characters": 99,
+          "negative_cases": 0,
+          "false_positive_negative_cases": 0,
+          "errors": 0
+        }
+      },
+      "source_segment_metrics": {
+        "exact_match": {
+          "precision": 0.8076923076923077,
+          "recall": 0.7368421052631579,
+          "f1": 0.7706422018348624,
+          "support": 57
+        },
+        "partial_match": {
+          "precision": 0.9038461538461539,
+          "recall": 0.8245614035087719,
+          "f1": 0.8623853211009175,
+          "support": 57
+        },
+        "per_type": {
+          "cf": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "em": {
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "support": 12
+          },
+          "ind": {
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666,
+            "support": 6
+          },
+          "loc": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 3
+          },
+          "pe": {
+            "precision": 0.8125,
+            "recall": 0.8666666666666667,
+            "f1": 0.8387096774193549,
+            "support": 30
+          },
+          "tel": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "json_validity_rate": 1.0,
+        "fp_rate_hard_negatives": 0.0,
+        "confusion_matrix": {
+          "pe": {
+            "pe": 29,
+            "MISS": 1
+          },
+          "em": {
+            "em": 6,
+            "pe": 3,
+            "MISS": 3
+          },
+          "ind": {
+            "ind": 6
+          },
+          "tel": {
+            "tel": 3
+          },
+          "cf": {
+            "cf": 3
+          },
+          "loc": {
+            "MISS": 3
+          },
+          "SPURIOUS": {
+            "loc": 2
+          }
+        },
+        "total_predictions": 52,
+        "total_gold": 57,
+        "total_examples": 54
+      },
+      "cases": [
+        {
+          "id": "python-name-0",
+          "language": "python",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 2.56,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 23,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-name-1",
+          "language": "python",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 2.69,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 26,
+              "y": "pe",
+              "t": "Giulia Bianchi"
+            }
+          ]
+        },
+        {
+          "id": "python-name-2",
+          "language": "python",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.02,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 24,
+              "y": "pe",
+              "t": "Samir Haddad"
+            }
+          ]
+        },
+        {
+          "id": "python-name-3",
+          "language": "python",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.63,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 29,
+              "y": "pe",
+              "t": "Anne-Marie Dubois"
+            }
+          ]
+        },
+        {
+          "id": "python-email",
+          "language": "python",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.17,
+          "predictions": [
+            {
+              "s": 9,
+              "e": 32,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "python-address",
+          "language": "python",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.03,
+          "predictions": [
+            {
+              "s": 11,
+              "e": 30,
+              "y": "ind",
+              "t": "Via Roma 10, Milano"
+            }
+          ]
+        },
+        {
+          "id": "python-phone",
+          "language": "python",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.14,
+          "predictions": [
+            {
+              "s": 9,
+              "e": 24,
+              "y": "tel",
+              "t": "+39 333 1234567"
+            }
+          ]
+        },
+        {
+          "id": "python-cf",
+          "language": "python",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.7,
+          "predictions": [
+            {
+              "s": 11,
+              "e": 27,
+              "y": "cf",
+              "t": "RSSMRA85M01H501Z"
+            }
+          ]
+        },
+        {
+          "id": "python-comment",
+          "language": "python",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 2,
+          "exposed_characters": 6,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.68,
+          "predictions": [
+            {
+              "s": 13,
+              "e": 24,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 34,
+              "e": 45,
+              "y": "ind",
+              "t": "Via Roma 10"
+            }
+          ]
+        },
+        {
+          "id": "python-escaped",
+          "language": "python",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 16,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.64,
+          "predictions": []
+        },
+        {
+          "id": "python-concatenated",
+          "language": "python",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.19,
+          "predictions": [
+            {
+              "s": 12,
+              "e": 17,
+              "y": "pe",
+              "t": "Mario"
+            },
+            {
+              "s": 23,
+              "e": 28,
+              "y": "pe",
+              "t": "Rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-email-concatenated",
+          "language": "python",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 12,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.25,
+          "predictions": [
+            {
+              "s": 9,
+              "e": 20,
+              "y": "pe",
+              "t": "mario.rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-structure",
+          "language": "python",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 2,
+          "exposed_characters": 0,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 5.62,
+          "predictions": [
+            {
+              "s": 25,
+              "e": 36,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 49,
+              "e": 72,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "python-long-tail",
+          "language": "python",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 539.59,
+          "predictions": [
+            {
+              "s": 9988,
+              "e": 9999,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "python-negative-0",
+          "language": "python",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 2.85,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-1",
+          "language": "python",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 2.54,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-2",
+          "language": "python",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 2.74,
+          "predictions": []
+        },
+        {
+          "id": "python-negative-3",
+          "language": "python",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.36,
+          "predictions": []
+        },
+        {
+          "id": "javascript-name-0",
+          "language": "javascript",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.34,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 29,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-name-1",
+          "language": "javascript",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.34,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 32,
+              "y": "pe",
+              "t": "Giulia Bianchi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-name-2",
+          "language": "javascript",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.16,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 30,
+              "y": "pe",
+              "t": "Samir Haddad"
+            }
+          ]
+        },
+        {
+          "id": "javascript-name-3",
+          "language": "javascript",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.7,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 35,
+              "y": "pe",
+              "t": "Anne-Marie Dubois"
+            }
+          ]
+        },
+        {
+          "id": "javascript-email",
+          "language": "javascript",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.8,
+          "predictions": [
+            {
+              "s": 15,
+              "e": 38,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "javascript-address",
+          "language": "javascript",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 1,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.15,
+          "predictions": [
+            {
+              "s": 17,
+              "e": 28,
+              "y": "ind",
+              "t": "Via Roma 10"
+            },
+            {
+              "s": 30,
+              "e": 36,
+              "y": "loc",
+              "t": "Milano"
+            }
+          ]
+        },
+        {
+          "id": "javascript-phone",
+          "language": "javascript",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.61,
+          "predictions": [
+            {
+              "s": 15,
+              "e": 30,
+              "y": "tel",
+              "t": "+39 333 1234567"
+            }
+          ]
+        },
+        {
+          "id": "javascript-cf",
+          "language": "javascript",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.18,
+          "predictions": [
+            {
+              "s": 17,
+              "e": 33,
+              "y": "cf",
+              "t": "RSSMRA85M01H501Z"
+            }
+          ]
+        },
+        {
+          "id": "javascript-comment",
+          "language": "javascript",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 2,
+          "exposed_characters": 6,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.63,
+          "predictions": [
+            {
+              "s": 14,
+              "e": 25,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 35,
+              "e": 46,
+              "y": "ind",
+              "t": "Via Roma 10"
+            }
+          ]
+        },
+        {
+          "id": "javascript-escaped",
+          "language": "javascript",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.73,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 34,
+              "y": "pe",
+              "t": "Mario\\u0020Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-concatenated",
+          "language": "javascript",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.66,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 23,
+              "y": "pe",
+              "t": "Mario"
+            },
+            {
+              "s": 29,
+              "e": 34,
+              "y": "pe",
+              "t": "Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-email-concatenated",
+          "language": "javascript",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 12,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 8.01,
+          "predictions": [
+            {
+              "s": 15,
+              "e": 26,
+              "y": "pe",
+              "t": "mario.rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-structure",
+          "language": "javascript",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 2,
+          "exposed_characters": 0,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 6.23,
+          "predictions": [
+            {
+              "s": 29,
+              "e": 40,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 51,
+              "e": 74,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "javascript-long-tail",
+          "language": "javascript",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 530.78,
+          "predictions": [
+            {
+              "s": 9987,
+              "e": 9998,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "javascript-negative-0",
+          "language": "javascript",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.33,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-1",
+          "language": "javascript",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.08,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-2",
+          "language": "javascript",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.06,
+          "predictions": []
+        },
+        {
+          "id": "javascript-negative-3",
+          "language": "javascript",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.23,
+          "predictions": []
+        },
+        {
+          "id": "java-name-0",
+          "language": "java",
+          "scenario": "name-0",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 2.75,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 30,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-name-1",
+          "language": "java",
+          "scenario": "name-1",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.24,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 33,
+              "y": "pe",
+              "t": "Giulia Bianchi"
+            }
+          ]
+        },
+        {
+          "id": "java-name-2",
+          "language": "java",
+          "scenario": "name-2",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 11,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.12,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 31,
+              "y": "pe",
+              "t": "Samir Haddad"
+            }
+          ]
+        },
+        {
+          "id": "java-name-3",
+          "language": "java",
+          "scenario": "name-3",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.68,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 36,
+              "y": "pe",
+              "t": "Anne-Marie Dubois"
+            }
+          ]
+        },
+        {
+          "id": "java-email",
+          "language": "java",
+          "scenario": "email",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.82,
+          "predictions": [
+            {
+              "s": 16,
+              "e": 39,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "java-address",
+          "language": "java",
+          "scenario": "address",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 1,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.14,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 29,
+              "y": "ind",
+              "t": "Via Roma 10"
+            },
+            {
+              "s": 31,
+              "e": 37,
+              "y": "loc",
+              "t": "Milano"
+            }
+          ]
+        },
+        {
+          "id": "java-phone",
+          "language": "java",
+          "scenario": "phone",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 13,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.64,
+          "predictions": [
+            {
+              "s": 16,
+              "e": 31,
+              "y": "tel",
+              "t": "+39 333 1234567"
+            }
+          ]
+        },
+        {
+          "id": "java-cf",
+          "language": "java",
+          "scenario": "cf",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 4.19,
+          "predictions": [
+            {
+              "s": 18,
+              "e": 34,
+              "y": "cf",
+              "t": "RSSMRA85M01H501Z"
+            }
+          ]
+        },
+        {
+          "id": "java-comment",
+          "language": "java",
+          "scenario": "comment",
+          "entities": 3,
+          "fully_covered": 2,
+          "exposed_characters": 6,
+          "required_characters": 25,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.65,
+          "predictions": [
+            {
+              "s": 14,
+              "e": 25,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 35,
+              "e": 46,
+              "y": "ind",
+              "t": "Via Roma 10"
+            }
+          ]
+        },
+        {
+          "id": "java-escaped",
+          "language": "java",
+          "scenario": "escaped",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 16,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 3.73,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 35,
+              "y": "pe",
+              "t": "Mario\\u0020Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-concatenated",
+          "language": "java",
+          "scenario": "concatenated",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 6.35,
+          "predictions": [
+            {
+              "s": 19,
+              "e": 24,
+              "y": "pe",
+              "t": "Mario"
+            },
+            {
+              "s": 30,
+              "e": 35,
+              "y": "pe",
+              "t": "Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-email-concatenated",
+          "language": "java",
+          "scenario": "email-concatenated",
+          "entities": 1,
+          "fully_covered": 0,
+          "exposed_characters": 12,
+          "required_characters": 23,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 7.23,
+          "predictions": [
+            {
+              "s": 16,
+              "e": 27,
+              "y": "pe",
+              "t": "mario.rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-structure",
+          "language": "java",
+          "scenario": "structure",
+          "entities": 2,
+          "fully_covered": 2,
+          "exposed_characters": 0,
+          "required_characters": 33,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 5.26,
+          "predictions": [
+            {
+              "s": 34,
+              "e": 45,
+              "y": "pe",
+              "t": "Mario Rossi"
+            },
+            {
+              "s": 49,
+              "e": 72,
+              "y": "em",
+              "t": "mario.rossi@example.com"
+            }
+          ]
+        },
+        {
+          "id": "java-long-tail",
+          "language": "java",
+          "scenario": "long-tail",
+          "entities": 1,
+          "fully_covered": 1,
+          "exposed_characters": 0,
+          "required_characters": 10,
+          "negative": false,
+          "false_positive_negative": false,
+          "latency_ms": 563.1,
+          "predictions": [
+            {
+              "s": 9987,
+              "e": 9998,
+              "y": "pe",
+              "t": "Mario Rossi"
+            }
+          ]
+        },
+        {
+          "id": "java-negative-0",
+          "language": "java",
+          "scenario": "negative-0",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.4,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-1",
+          "language": "java",
+          "scenario": "negative-1",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 3.13,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-2",
+          "language": "java",
+          "scenario": "negative-2",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 4.34,
+          "predictions": []
+        },
+        {
+          "id": "java-negative-3",
+          "language": "java",
+          "scenario": "negative-3",
+          "entities": 0,
+          "fully_covered": 0,
+          "exposed_characters": 0,
+          "required_characters": 0,
+          "negative": true,
+          "false_positive_negative": false,
+          "latency_ms": 5.34,
+          "predictions": []
+        }
+      ]
+    }
+  },
+  "experiment": "Targeted quote-boundary decoder; local uncommitted patch, not deployed",
+  "source_hashes": {
+    "app/infrastructure/adapters/ner_detection.py": "1c6b81ea30a4662cb370673ec0de64fc4313a8ebfa5ecdf0599751960649e12d",
+    "eval/code_pii_benchmark.py": "6360d135378370bc512d39da2592c7395600dc67e37bef5adcf94468833bdd88",
+    ".local/pii-model/tokenizer.json": "f53431de146e9d60fea4941c76a6fb38342127ddbd12157339aa99e8bbf787df"
+  }
+}

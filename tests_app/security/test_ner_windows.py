@@ -109,7 +109,8 @@ async def test_invalid_inference_output_fails_closed(bad_output):
     with pytest.raises(RuntimeError, match='Invalid NER inference'):
         await detector.detect('Mario Rossi')
 
-async def test_actual_api_tail_tokenization_and_rehydration(actual_ner, monkeypatch):
+@pytest.mark.parametrize("quoted", [False, True])
+async def test_actual_api_tail_tokenization_and_rehydration(actual_ner, monkeypatch, quoted):
     import base64
     monkeypatch.setenv("PRIVACY_SHIELD_KEK_BASE64", base64.b64encode(b"x" * 32).decode())
     import fakeredis.aioredis
@@ -128,7 +129,7 @@ async def test_actual_api_tail_tokenization_and_rehydration(actual_ner, monkeypa
     org = '11111111-1111-1111-1111-111111111111'
     req = '22222222-2222-2222-2222-222222222222'
     created = await container.create_api_key_use_case.execute(org)
-    tail = 'Il signor Mario Rossi abita a Roma.'
+    tail = 'fullName = "Mario Rossi";' if quoted else 'Il signor Mario Rossi abita a Roma.'
     prefix = ('Questo documento contiene informazioni generali. ' * 210)[:10000 - len(tail) - 1] + ' '
     text = prefix + tail
     assert len(text) == 10000
@@ -140,6 +141,10 @@ async def test_actual_api_tail_tokenization_and_rehydration(actual_ner, monkeypa
             assert response.status_code == 200
             tokenized = response.json()['tokenized_texts'][0]
             assert 'Mario Rossi' not in tokenized
+            if quoted:
+                from app.domain.services.token_format import TOKEN_PATTERN
+                assert 'Mario' not in tokenized and 'Rossi' not in tokenized
+                assert TOKEN_PATTERN.sub('<PII>', tokenized) == prefix + 'fullName = "<PII>";'
             response = await client.post('/api/v1/rehydrate', headers=headers,
                 json={'text': tokenized, 'organization_id': org, 'request_id': req})
             assert response.status_code == 200 and response.json()['text'] == text

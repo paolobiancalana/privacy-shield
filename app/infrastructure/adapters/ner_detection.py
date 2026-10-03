@@ -146,6 +146,20 @@ class NerDetectionAdapter(DetectionPort):
                 prev_wid = wid
                 continue
 
+            # Quotes may share a tokenizer word with the following name.
+            # They delimit entities; ordinary subwords still use the first label.
+            boundary = text[cs:ce].strip()
+            internal_apostrophe = (
+                boundary in {"'", "’"} and cs > 0 and ce < len(text)
+                and text[cs - 1].isalnum() and text[ce].isalnum()
+            )
+            if boundary in {'"', "'", "’"} and not internal_apostrophe:
+                if current:
+                    entities.append(current)
+                    current = None
+                prev_wid = None
+                continue
+
             if wid is not None and wid == prev_wid:
                 if current:
                     current["e"] = ce
